@@ -5,457 +5,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>求人検索 - ニジ看護</title>
+    <link rel="icon" type="image/png" href="./logo.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../survey/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f88caa',
+                        'primary-hover': '#e07b99',
+                        'primary-light': '#fff0f4',
+                        'primary-dark': '#d16a88',
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'Hiragino Sans', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        /* CSS Variables Override/Addition */
-        :root {
-            --color-bg-light: #f9f9f9;
-        }
-
-        body {
-            background-color: var(--color-bg-light);
-        }
-
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Topics Carousel */
-        .topics-section {
-            padding: var(--spacing-md);
-            overflow: hidden;
-            background: white;
-            margin-bottom: var(--spacing-md);
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--color-text);
-        }
-
-        .topics-scroll {
-            display: flex;
-            gap: var(--spacing-md);
-            overflow-x: auto;
-            padding-bottom: var(--spacing-sm);
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .topic-card {
-            flex: 0 0 85%;
-            scroll-snap-align: center;
-            background: linear-gradient(135deg, var(--color-accent) 0%, #ff9ebb 100%);
-            color: white;
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            position: relative;
-            overflow: hidden;
-            text-decoration: none;
-            display: block;
-        }
-
-        .topic-card::after {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
-            transform: rotate(45deg);
-        }
-
-        .topic-badge {
-            background: rgba(0, 0, 0, 0.2);
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: inline-block;
-            font-weight: bold;
-        }
-
-        .topic-title {
-            font-weight: bold;
-            font-size: 1.1rem;
-            line-height: 1.4;
-            margin-bottom: 6px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .topic-salary {
-            font-size: 0.9rem;
-            opacity: 0.95;
-            margin-top: 4px;
-        }
-
-        /* Search Section */
-        .search-area {
-            background: white;
-            margin: var(--spacing-md);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            padding: var(--spacing-md);
-        }
-
-        .search-header {
-            font-weight: bold;
-            margin-bottom: var(--spacing-md);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1rem;
-        }
-
-        .filter-grid {
-            display: grid;
-            gap: var(--spacing-md);
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .filter-label {
-            font-size: 0.85rem;
-            color: var(--color-text-light);
-            font-weight: bold;
-        }
-
-        .filter-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            background: #fff;
-        }
-
-        .checkbox-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.85rem;
-            color: #555;
-            padding: 4px 8px;
-            border: 1px solid #eee;
-            border-radius: 16px;
-            background: #f9f9f9;
-            cursor: pointer;
-        }
-
-        .checkbox-label:has(input:checked) {
-            background: var(--color-accent-light);
-            border-color: var(--color-accent);
-            color: var(--color-accent);
-            font-weight: 500;
-        }
-
-        .search-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--color-text);
-            color: white;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: var(--spacing-sm);
-            transition: opacity 0.2s;
-        }
-
-        .search-btn:active {
-            opacity: 0.8;
-        }
-
-        /* Sort Bar */
-        .sort-bar {
-            padding: 0 var(--spacing-md) var(--spacing-sm);
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sort-select {
-            padding: 6px 10px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            font-size: 0.85rem;
-            background: white;
-        }
-
-        /* Job List */
-        .jobs-container {
-            padding: 0 var(--spacing-md) 80px;
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
-        }
-
-        .job-card {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid transparent;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            transition: transform 0.2s ease;
-        }
-
-        .job-card:active {
-            transform: scale(0.98);
-        }
-
-        .job-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--color-text-light);
-            margin-bottom: 8px;
-        }
-
-        .company-name {
-            font-weight: bold;
-            color: var(--color-text);
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-        }
-
-        .job-title {
-            font-weight: bold;
-            font-size: 1.05rem;
-            color: var(--color-accent);
-            line-height: 1.4;
-            margin-bottom: 12px;
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-
-        .tag {
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: #f0f0f0;
-            color: #555;
-        }
-
-        .tag.accent {
-            background: var(--color-accent-light);
-            color: var(--color-accent);
-        }
-
-        .features-preview {
-            font-size: 0.75rem;
-            color: #666;
-            margin-bottom: 10px;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .job-meta {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 4px 10px;
-            font-size: 0.85rem;
-            color: #555;
-        }
-
-        /* Cute Loading Animation */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .cute-loader {
-            width: 60px;
-            height: 60px;
-            background-color: var(--color-accent);
-            border-radius: 50%;
-            animation: bounce 1.0s infinite ease-in-out;
-            position: relative;
-        }
-
-        .cute-loader::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 12px;
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .cute-loader::after {
-            content: '';
-            position: absolute;
-            top: 15px;
-            right: 12px;
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .loader-text {
-            margin-top: 20px;
-            color: var(--color-accent);
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: scale(0.0);
-                -webkit-transform: scale(0.0);
-            }
-
-            50% {
-                transform: scale(1.0);
-                -webkit-transform: scale(1.0);
-            }
-        }
-
-        .error-msg {
-            color: var(--color-error);
-            text-align: center;
-            padding: 20px;
-            background: #fff;
-            margin: 20px;
-            border-radius: 8px;
-        }
-
-        .pagination-controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-            align-items: center;
-        }
-
-        .page-btn {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            color: var(--color-text);
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #eee;
-        }
-
-        .page-info {
-            font-size: 0.9rem;
-            color: #666;
-            font-weight: bold;
-        }
+        @keyframes bounce-loader { 0%,100%{transform:scale(0)} 50%{transform:scale(1)} }
+        .animate-bounce-loader { animation: bounce-loader 1s infinite ease-in-out; }
+        @keyframes fade-in-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .animate-fade-in-up { animation: fade-in-up 0.3s ease forwards; }
+        @keyframes slide-up { from{transform:translateX(-50%) translateY(100px)} to{transform:translateX(-50%) translateY(0)} }
+        .cart-bar-enter { animation: slide-up 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+        @keyframes heart-pop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+        .heart-pop { animation: heart-pop 0.3s ease; }
+        .chip-active { background-color:#f88caa!important; color:white!important; border-color:#f88caa!important; }
+        .hide-scrollbar::-webkit-scrollbar { display:none; }
+        .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
     </style>
 </head>
 
-<body>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="cute-loader"></div>
-        <div class="loader-text">求人を探しています...</div>
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 flex flex-col items-center justify-center z-[9999]">
+        <div class="w-16 h-16 bg-primary rounded-full animate-bounce-loader relative">
+            <span class="absolute top-4 left-3 w-3 h-3 bg-white rounded-full"></span>
+            <span class="absolute top-4 right-3 w-3 h-3 bg-white rounded-full"></span>
+        </div>
+        <div class="mt-5 text-primary font-bold text-lg">求人を探しています...</div>
     </div>
 
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header__logo">
-                <span style="font-weight:bold; font-size:1.2rem; color:var(--color-accent);">ニジ看護求人</span>
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <img src="logo.jpg" alt="ニジ看護" class="h-8 w-auto">
+                <span class="text-xl font-bold text-primary tracking-tight">ニジ看護 求人</span>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Topics Carousel (Recommended) -->
-        <section class="topics-section">
-            <div class="section-title">
-                <span>🔥</span> 今週のおすすめ求人！
-            </div>
-            <div class="topics-scroll" id="topicsContainer">
-                <!-- Populated by JS -->
-            </div>
-        </section>
-
-        <!-- Search Filter (Visible) -->
-        <div class="search-area">
-            <div class="search-header">🔍 条件検索</div>
-
-            <div class="filter-grid">
-                <!-- 職種大枠 -->
-                <div class="filter-group">
-                    <label class="filter-label">職種 (大枠)</label>
-                    <select id="categoryInput" class="filter-input">
-                        <option value="">すべての職種</option>
-                        <option value="営業">営業</option>
-                        <option value="事務・管理">事務・管理</option>
-                        <option value="ITエンジニア">ITエンジニア</option>
-                        <option value="クリエイティブ">クリエイティブ</option>
-                        <option value="企画・マーケティング">企画・マーケティング</option>
-                        <option value="コンサルタント">コンサルタント</option>
-                        <option value="サービス・販売">サービス・販売</option>
-                        <option value="Web・データ分析">Web・データ分析</option>
-                    </select>
+    <!-- Search Bar -->
+    <div class="bg-primary">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row gap-2">
+                <div class="flex-1">
+                    <input type="text" id="keywordInput"
+                        class="w-full h-12 px-4 rounded-lg border-2 border-transparent focus:border-pink-300 focus:outline-none text-base placeholder-gray-400"
+                        placeholder="キーワード、職種名など">
                 </div>
-
-                <!-- 職種詳細 -->
-                <div class="filter-group">
-                    <label class="filter-label">職種 (詳細)</label>
-                    <select id="detailSelect" class="filter-input" disabled>
-                        <option value="">先に大枠を選択してください</option>
-                    </select>
-                </div>
-
-                <!-- エリア（大枠） -->
-                <div class="filter-group">
-                    <label class="filter-label">エリア (大枠)</label>
-                    <select id="regionInput" class="filter-input">
+                <div class="flex-1 md:max-w-xs">
+                    <select id="regionInput"
+                        class="w-full h-12 px-4 rounded-lg border-2 border-transparent focus:border-pink-300 focus:outline-none text-base bg-white text-gray-700 appearance-none"
+                        style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%23666%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;">
                         <option value="">すべてのエリア</option>
                         <option value="関東">関東</option>
                         <option value="関西">関西</option>
@@ -464,448 +82,265 @@
                         <option value="北海道・東北">北海道・東北</option>
                         <option value="甲信越・北陸">甲信越・北陸</option>
                         <option value="中国・四国">中国・四国</option>
-                        <option value="リモート">リモート</option>
                     </select>
                 </div>
-
-                <!-- 都道府県 (詳細) -->
-                <div class="filter-group">
-                    <label class="filter-label">都道府県 (詳細)</label>
-                    <select id="prefSelect" class="filter-input" disabled>
-                        <option value="">先にエリアを選択してください</option>
-                    </select>
-                </div>
-
-                <!-- 年収 -->
-                <div class="filter-group">
-                    <label class="filter-label">最低年収</label>
-                    <select id="salaryInput" class="filter-input">
-                        <option value="0">こだわらない</option>
-                        <option value="300">300万円以上</option>
-                        <option value="400">400万円以上</option>
-                        <option value="500">500万円以上</option>
-                        <option value="600">600万円以上</option>
-                        <option value="700">700万円以上</option>
-                        <option value="800">800万円以上</option>
-                    </select>
-                </div>
-
-                <!-- 特徴 -->
-                <div class="filter-group">
-                    <label class="filter-label">特徴 (複数選択可)</label>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="完全未経験OK">
-                            完全未経験OK</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="職種未経験OK">
-                            職種未経験OK</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="業種未経験OK">
-                            業種未経験OK</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="土日休み"> 土日休み</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="転勤なし"> 転勤なし</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="産休育休実績あり">
-                            産休育休実績あり</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="残業なし"> 残業なし</label>
-                        <label class="checkbox-label"><input type="checkbox" name="feature" value="社宅家賃補助制度あり">
-                            社宅/家賃補助</label>
-                    </div>
-                </div>
-
-                <button class="search-btn" id="searchBtn">この条件で検索する</button>
+                <button id="searchBtn"
+                    class="h-12 px-8 bg-white hover:bg-gray-50 text-primary font-bold rounded-lg transition-colors text-base flex-shrink-0">
+                    検索
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Sort Bar -->
-        <div class="sort-bar">
-            <span>並び替え:</span>
-            <select id="sortSelect" class="sort-select">
+    <!-- Filter Bar -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-4 py-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="salaryInput"
+                    class="text-sm border border-gray-200 rounded-full px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-8"
+                    style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
+                    <option value="0">年収こだわらない</option>
+                    <option value="300">300万円以上</option>
+                    <option value="400">400万円以上</option>
+                    <option value="500">500万円以上</option>
+                    <option value="600">600万円以上</option>
+                </select>
+                <select id="categoryInput"
+                    class="text-sm border border-gray-200 rounded-full px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-8"
+                    style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
+                    <option value="">すべての施設</option>
+                    <option value="病院">病院</option>
+                    <option value="クリニック">クリニック</option>
+                    <option value="訪問看護">訪問看護</option>
+                    <option value="介護施設">介護施設</option>
+                    <option value="美容クリニック">美容クリニック</option>
+                    <option value="健診センター">健診センター</option>
+                    <option value="保育園・学校">保育園・学校</option>
+                </select>
+                <button id="filterToggleBtn" class="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    <span id="filterToggleText">詳細フィルター</span>
+                </button>
+            </div>
+            <div id="detailFilters" class="hidden mt-3 pt-3 border-t border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-xs text-gray-500 font-medium mb-1 block">都道府県</label>
+                        <select id="prefSelect" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" disabled>
+                            <option value="">先にエリアを選択</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 font-medium mb-1 block">雇用形態</label>
+                        <select id="employmentInput" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
+                            <option value="">すべて</option>
+                            <option value="常勤">常勤</option>
+                            <option value="非常勤">非常勤・パート</option>
+                            <option value="派遣">派遣</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 font-medium mb-2 block">こだわり条件</label>
+                    <div class="flex flex-wrap gap-2" id="featureChips">
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="日勤のみ" class="hidden"> 日勤のみ</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="夜勤専従" class="hidden"> 夜勤専従</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="土日休み" class="hidden"> 土日休み</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="残業少なめ" class="hidden"> 残業少なめ</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="未経験可" class="hidden"> 未経験可</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="ブランク可" class="hidden"> ブランク可</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="寮" class="hidden"> 寮・借上</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="託児所" class="hidden"> 託児所あり</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="車通勤" class="hidden"> 車通勤可</label>
+                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="駅近" class="hidden"> 駅近</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-4 pb-28">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-bold text-primary" id="resultCount"></p>
+            <select id="sortSelect" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-8" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
                 <option value="newest">新着順</option>
                 <option value="salary_desc">年収が高い順</option>
                 <option value="salary_asc">年収が低い順</option>
             </select>
         </div>
-
-        <!-- Job List -->
-        <div class="jobs-container" id="jobsContainer">
-            <!-- Populated by JS -->
+        <div id="topicsSection" class="hidden mb-4">
+            <div class="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100">
+                <div class="flex items-center gap-2 mb-3"><span class="text-lg">🔥</span><h2 class="text-sm font-bold text-primary">今週のおすすめ求人</h2></div>
+                <div id="topicsContainer" class="flex gap-3 overflow-x-auto hide-scrollbar pb-1"></div>
+            </div>
         </div>
+        <div id="jobsContainer" class="flex flex-col gap-4"></div>
+    </main>
+
+    <!-- Favorites Floating Bar -->
+    <div id="cartBar" class="fixed bottom-5 left-1/2 -translate-x-1/2 translate-y-[100px] w-[90%] max-w-md bg-primary text-white px-5 py-4 rounded-full shadow-lg flex justify-between items-center z-[2000]" style="transform:translateX(-50%) translateY(100px);">
+        <div class="font-bold text-base flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span>気になる求人</span>
+            <span id="cartCount" class="bg-white text-primary px-2 py-0.5 rounded-full text-xs font-bold">0</span>
+        </div>
+        <button id="applyBtn" class="bg-white text-primary font-bold px-6 py-2.5 rounded-full shadow hover:bg-gray-50 active:scale-95 transition-all text-sm">まとめて応募</button>
     </div>
 
-    <!-- JSZip for client-side unzipping -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-    <!-- Script -->
     <script>
         const DATA_URL = './jobs.zip';
-        let allJobs = [];
-
-        let currentFilteredJobs = [];
-        let currentPage = 1;
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwT4dlPuH3edMjF5aWRV_TgAzU0Rz7YS76Zb-H0Dv3G02ph0DR1KY006ldArCJZngFs/exec';
+        let allJobs = [], cart = new Set(), currentFilteredJobs = [], currentPage = 1;
         const ITEMS_PER_PAGE = 20;
-
-        /**
-         * 職種マッピング
-         */
-        const JOB_DETAILS = {
-            "営業": ["法人営業", "個人営業", "ルート営業", "企画営業", "技術営業・セールスエンジニア", "人材系営業", "医療系営業", "保険営業", "不動産営業", "インサイドセールス", "営業事務・アシスタント", "その他（営業）"],
-            "事務・管理": ["一般事務", "経理・財務", "人事・労務・採用", "総務", "秘書・受付", "法務・コンプライアンス", "購買・調達", "貿易事務", "コールセンター運営", "その他（事務・管理）"],
-            "ITエンジニア": ["SE・システムエンジニア", "プロジェクトマネージャー", "インフラエンジニア", "ネットワークエンジニア", "サーバーサイドエンジニア", "社内SE", "ITコンサルタント", "IT運用・保守", "テスト・品質保証", "テクニカルサポート", "その他（ITエンジニア）"],
-            "クリエイティブ": ["グラフィックデザイナー", "Webデザイナー", "Webディレクター", "Webプロデューサー", "アパレルデザイナー", "広告・PR・プロモーション", "その他（クリエイティブ）"],
-            "企画・マーケティング": ["経営企画", "事業企画", "新規事業開発", "マーケティング", "Webマーケティング", "広報・PR", "マネージャー・管理職", "その他（企画・マーケティング）"],
-            "コンサルタント": ["経営コンサルタント", "戦略コンサルタント", "ITコンサルタント", "キャリアコンサルタント", "人材コーディネーター", "その他（コンサルタント）"],
-            "サービス・販売": ["販売スタッフ", "アパレル販売", "店長・SV", "カスタマーサービス", "ホールスタッフ", "その他（サービス・販売）"],
-            "Web・データ分析": ["データサイエンティスト", "データアナリスト", "Webサービス企画", "その他（Web・データ分析）"]
-        };
-
-        /**
-         * 地域マッピング
-         */
+        const urlParams = new URLSearchParams(window.location.search);
+        window.LINE_UID = urlParams.get('uid') || '';
         const REGION_PREF = {
-            "関東": ["東京", "神奈川", "千葉", "埼玉", "茨城", "栃木", "群馬"],
-            "関西": ["大阪", "京都", "兵庫", "奈良", "滋賀", "和歌山"],
-            "東海": ["愛知", "静岡", "岐阜", "三重"],
-            "九州": ["福岡", "佐賀", "長崎", "熊本", "大分", "宮崎", "鹿児島", "沖縄"],
-            "北海道・東北": ["北海道", "青森", "岩手", "宮城", "秋田", "山形", "福島"],
-            "甲信越・北陸": ["新潟", "富山", "石川", "福井", "山梨", "長野"],
-            "中国・四国": ["鳥取", "島根", "岡山", "広島", "山口", "徳島", "香川", "愛媛", "高知"],
-            "リモート": ["リモート"]
+            '関東':['東京都','神奈川県','埼玉県','千葉県','茨城県','栃木県','群馬県'],
+            '関西':['大阪府','兵庫県','京都府','奈良県','滋賀県','和歌山県'],
+            '東海':['愛知県','静岡県','岐阜県','三重県'],
+            '九州':['福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'],
+            '北海道・東北':['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県'],
+            '甲信越・北陸':['新潟県','富山県','石川県','福井県','山梨県','長野県'],
+            '中国・四国':['鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県']
         };
+        function truncate(s,n){return s&&s.length>n?s.substring(0,n)+'...':s||'';}
 
-        window.addEventListener('DOMContentLoaded', () => {
-            // Check URL params for uid to pass it later
-            const params = new URLSearchParams(window.location.search);
-            window.LINE_UID = params.get('uid') || '';
+        window.addEventListener('DOMContentLoaded',()=>{setupCart();setupFilters();setupInteractions();setupFeatureChips();fetchJobs();});
 
-            fetchJobs();
-            setupInteractions();
-            setupFilters();
-        });
-
-        function setupFilters() {
-            // Category -> Detail
-            const catSelect = document.getElementById('categoryInput');
-            const detailSelect = document.getElementById('detailSelect');
-            catSelect.addEventListener('change', () => {
-                const cat = catSelect.value;
-                detailSelect.innerHTML = '<option value="">すべての詳細職種</option>';
-                if (cat && JOB_DETAILS[cat]) {
-                    JOB_DETAILS[cat].forEach(detail => {
-                        const opt = document.createElement('option');
-                        opt.value = detail;
-                        opt.innerText = detail;
-                        detailSelect.appendChild(opt);
-                    });
-                    detailSelect.disabled = false;
-                } else {
-                    detailSelect.disabled = true;
-                }
-            });
-
-            // Region -> Pref
-            const regSelect = document.getElementById('regionInput');
-            const prefSelect = document.getElementById('prefSelect');
-            regSelect.addEventListener('change', () => {
-                const reg = regSelect.value;
-                prefSelect.innerHTML = '<option value="">すべての都道府県</option>';
-                if (reg && REGION_PREF[reg]) {
-                    REGION_PREF[reg].forEach(pref => {
-                        const opt = document.createElement('option');
-                        opt.value = pref;
-                        opt.innerText = pref;
-                        prefSelect.appendChild(opt);
-                    });
-                    prefSelect.disabled = false;
-                } else {
-                    prefSelect.disabled = true;
-                }
-            });
+        // Cart
+        function setupCart(){
+            const saved=localStorage.getItem('nijikango_cart');
+            if(saved){try{JSON.parse(saved).forEach(id=>cart.add(String(id)));updateCartUI();}catch(e){}}
+            document.getElementById('applyBtn').addEventListener('click',applyBatch);
+        }
+        function toggleCart(id,btn){
+            id=String(id);const icon=btn.querySelector('.heart-icon');
+            if(cart.has(id)){cart.delete(id);btn.classList.remove('text-red-500');btn.classList.add('text-gray-300');if(icon)icon.setAttribute('fill','none');}
+            else{cart.add(id);btn.classList.add('text-red-500');btn.classList.remove('text-gray-300');if(icon)icon.setAttribute('fill','currentColor');btn.classList.add('heart-pop');setTimeout(()=>btn.classList.remove('heart-pop'),300);}
+            saveCart();updateCartUI();
+        }
+        function saveCart(){localStorage.setItem('nijikango_cart',JSON.stringify(Array.from(cart)));}
+        function updateCartUI(){
+            const c=cart.size;document.getElementById('cartCount').innerText=c;const bar=document.getElementById('cartBar');
+            if(c>0){bar.style.transform='translateX(-50%) translateY(0)';bar.classList.add('cart-bar-enter');}
+            else{bar.style.transform='translateX(-50%) translateY(100px)';bar.classList.remove('cart-bar-enter');}
         }
 
-        async function fetchJobs() {
-            try {
-                // Try from localStorage first (optional, but good for refresh)
-                // Actually cache logic is mainly for detail page, but index can use it too
-                // For now, index logic: fetch zip always to ensure fresh data, then SAVE to cache
+        // Modal
+        function showApplyModal(){
+            const c=cart.size;if(!c)return;
+            const o=document.createElement('div');o.id='applyModal';o.className='fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]';
+            o.innerHTML=`<div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-md shadow-2xl"><div class="text-gray-800 text-lg leading-relaxed mb-6">${c}件の求人にまとめて応募しますか？</div><div class="flex justify-center gap-4"><button onclick="this.closest('#applyModal').remove()" class="px-6 py-3 rounded-full font-bold bg-gray-100 text-gray-600 min-w-[120px]">キャンセル</button><button onclick="this.closest('#applyModal').remove();executeApplyBatch();" class="px-6 py-3 rounded-full font-bold bg-primary text-white min-w-[120px]">応募する</button></div></div>`;
+            document.body.appendChild(o);
+        }
+        function showResultModal(t){
+            const e=document.getElementById('resultModal');if(e)e.remove();
+            const o=document.createElement('div');o.id='resultModal';o.className='fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]';
+            o.innerHTML=`<div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-md shadow-2xl"><div class="text-gray-800 text-lg leading-relaxed mb-6 whitespace-pre-wrap">${t}</div><button onclick="this.closest('#resultModal').remove()" class="px-6 py-3 rounded-full font-bold bg-primary text-white min-w-[120px]">閉じる</button></div>`;
+            document.body.appendChild(o);
+        }
+        async function executeApplyBatch(){
+            showResultModal('応募が完了しました！\n\nLINEに正式な案内をお送りするので、\nトーク画面に戻ってお待ちください');
+            const ids=Array.from(cart);cart.clear();saveCart();updateCartUI();
+            document.querySelectorAll('.fav-btn').forEach(b=>{b.classList.remove('text-red-500');b.classList.add('text-gray-300');const i=b.querySelector('.heart-icon');if(i)i.setAttribute('fill','none');});
+            try{fetch(GAS_API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'apply_batch',userId:window.LINE_UID,jobIds:ids})}).catch(e=>console.error(e));}catch(e){}
+        }
+        async function applyBatch(){if(!cart.size)return;showApplyModal();}
 
-                const res = await fetch(`${DATA_URL}?t=${new Date().getTime()}`);
-                if (!res.ok) throw new Error('Local data not found');
+        // Filters
+        function setupFilters(){
+            const reg=document.getElementById('regionInput'),pref=document.getElementById('prefSelect');
+            reg.addEventListener('change',()=>{const r=reg.value;pref.innerHTML='<option value="">すべての都道府県</option>';if(r&&REGION_PREF[r]){REGION_PREF[r].forEach(p=>{const o=document.createElement('option');o.value=p;o.innerText=p;pref.appendChild(o);});pref.disabled=false;}else{pref.disabled=true;}});
+        }
+        function setupInteractions(){
+            document.getElementById('searchBtn').addEventListener('click',()=>{currentPage=1;filterAndRender();});
+            document.getElementById('sortSelect').addEventListener('change',()=>{currentPage=1;filterAndRender();});
+            document.getElementById('keywordInput').addEventListener('keydown',e=>{if(e.key==='Enter'){currentPage=1;filterAndRender();}});
+            const toggle=document.getElementById('filterToggleBtn'),detail=document.getElementById('detailFilters'),text=document.getElementById('filterToggleText');
+            toggle.addEventListener('click',()=>{const h=detail.classList.contains('hidden');if(h){detail.classList.remove('hidden');detail.classList.add('animate-fade-in-up');text.textContent='閉じる';}else{detail.classList.add('hidden');detail.classList.remove('animate-fade-in-up');text.textContent='詳細フィルター';}});
+        }
+        function setupFeatureChips(){document.querySelectorAll('#featureChips label').forEach(l=>{l.addEventListener('click',()=>{const c=l.querySelector('input[type="checkbox"]');setTimeout(()=>{c.checked?l.classList.add('chip-active'):l.classList.remove('chip-active');},0);});});}
 
-                const blob = await res.blob();
-                const zip = await JSZip.loadAsync(blob);
-                const jsonFileName = Object.keys(zip.files).find(name => name.endsWith('.json'));
-                if (!jsonFileName) throw new Error('No JSON found');
-
-                const jsonText = await zip.files[jsonFileName].async('string');
-                const data = JSON.parse(jsonText);
-
-                if (Array.isArray(data)) {
-                    allJobs = data;
-
-                    // Save to Cache for Detail Page
-                    try {
-                        localStorage.setItem('jobs_cache', JSON.stringify({
-                            timestamp: new Date().getTime(),
-                            data: data
-                        }));
-                    } catch (e) { console.warn('Cache limit', e); }
-
-                    renderTopics(data);
-                    filterAndRender();
-                }
-            } catch (e) {
-                console.error(e);
-                document.getElementById('jobsContainer').innerHTML = '<p class="error-msg">データの取得に失敗しました</p>';
-            } finally {
-                // Hide Loader
-                setTimeout(() => {
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                }, 500);
-            }
+        // Fetch Jobs
+        async function fetchJobs(){
+            try{
+                const res=await fetch(`${DATA_URL}?t=${Date.now()}`);if(!res.ok)throw new Error('Not found');
+                const blob=await res.blob();const zip=await JSZip.loadAsync(blob);
+                const fn=Object.keys(zip.files).find(n=>n.endsWith('.json'));if(!fn)throw new Error('No JSON');
+                const txt=await zip.files[fn].async('string');const data=JSON.parse(txt);
+                if(Array.isArray(data)&&data.length>0){allJobs=data;try{localStorage.setItem('jobs_cache',JSON.stringify({timestamp:Date.now(),data}));}catch(e){}renderTopics(data);filterAndRender();}
+                else{document.getElementById('jobsContainer').innerHTML='<div class="text-center py-10 text-gray-500 bg-white rounded-xl">求人データがありません</div>';}
+            }catch(e){console.error(e);document.getElementById('jobsContainer').innerHTML='<div class="text-center py-10 text-red-500 bg-white rounded-xl">求人データの読み込みに失敗しました。</div>';}
+            finally{setTimeout(()=>{document.getElementById('loadingOverlay').style.display='none';},500);}
         }
 
-        function renderTopics(jobs) {
-            let recommended = jobs.filter(j => {
-                const flag = String(j['おすすめ求人'] || '').toLowerCase();
-                return flag === 'true' || flag === '1' || flag === 'yes' || flag === 'おすすめ';
-            });
-
-            if (recommended.length < 3) {
-                const highSalary = jobs.filter(j =>
-                    parseInt(j['年収下限'] || 0) >= 600 && !recommended.includes(j)
-                );
-                recommended = [...recommended, ...highSalary];
-            }
-
-            if (recommended.length < 5) {
-                const recSet = new Set(recommended);
-                const newArrivals = [...jobs].reverse().filter(j => !recSet.has(j));
-                recommended = [...recommended, ...newArrivals];
-            }
-
-            const finalRecs = recommended.slice(0, 5);
-
-            const container = document.getElementById('topicsContainer');
-            if (finalRecs.length === 0) {
-                container.innerHTML = '<p style="padding:10px; color:#888;">準備中</p>';
-                return;
-            }
-
-            container.innerHTML = finalRecs.map(job => {
-                const title = job['求人タイトル'] || '注目求人';
-                const salary = job['年収'] || '応相談';
-                const id = job['求人番号'] || job['求人ID'];
-
-                // New Tab for Topics too
-                return `
-                    <a href="detail.html?id=${id}&uid=${window.LINE_UID}" target="_blank" class="topic-card">
-                        <span class="topic-badge">WEEKLY PICKUP</span>
-                        <div class="topic-title">${truncate(title, 30)}</div>
-                        <div class="topic-salary">💰 ${salary}</div>
-                    </a>
-                `;
+        // Topics
+        function renderTopics(jobs){
+            let rec=jobs.filter(j=>{const f=String(j['おすすめ求人']||'').toLowerCase();return f==='true'||f==='1';});
+            if(rec.length<3){const hi=jobs.filter(j=>parseInt(j['年収下限']||0)>=500&&!rec.includes(j));rec=[...rec,...hi];}
+            if(rec.length<5){const s=new Set(rec);rec=[...rec,...[...jobs].reverse().filter(j=>!s.has(j))];}
+            const final=rec.slice(0,5);if(!final.length)return;
+            document.getElementById('topicsSection').classList.remove('hidden');
+            document.getElementById('topicsContainer').innerHTML=final.map(j=>{
+                const t=j['求人タイトル']||'注目の看護求人',s=j['年収']||'応相談',ft=j['施設形態']||'',id=j['求人番号']||j['求人ID'];
+                return `<a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="flex-shrink-0 w-64 bg-white rounded-xl p-4 shadow-sm border border-pink-100 hover:shadow-md transition-shadow no-underline">${ft?`<span class="text-xs bg-primary-light text-primary px-2 py-0.5 rounded font-medium">${ft}</span>`:''}<div class="text-sm font-bold text-gray-800 mt-2 leading-snug line-clamp-2">${truncate(t,30)}</div><div class="text-xs text-primary font-bold mt-2">💰 ${s}</div></a>`;
             }).join('');
         }
 
-        function filterAndRender() {
-            // Dropdowns
-            const region = document.getElementById('regionInput').value;
-            const pref = document.getElementById('prefSelect').value;
-            const category = document.getElementById('categoryInput').value;
-            const detail = document.getElementById('detailSelect').value;
-            const minSalary = parseInt(document.getElementById('salaryInput').value, 10);
-            const sortMode = document.getElementById('sortSelect').value;
+        // Filter & Render
+        function filterAndRender(){
+            const kw=document.getElementById('keywordInput').value.trim().toLowerCase();
+            const region=document.getElementById('regionInput').value;
+            const pref=document.getElementById('prefSelect').value;
+            const cat=document.getElementById('categoryInput').value;
+            const minSal=parseInt(document.getElementById('salaryInput').value,10);
+            const emp=document.getElementById('employmentInput').value;
+            const sort=document.getElementById('sortSelect').value;
+            const feats=Array.from(document.querySelectorAll('input[name="feature"]:checked')).map(c=>c.value);
 
-            // Checkboxes
-            const checkedFeatures = Array.from(document.querySelectorAll('input[name="feature"]:checked'))
-                .map(cb => cb.value);
-
-            let filtered = allJobs.filter(job => {
-                const jDetail = (job['職種詳細'] || '');
-                const jPref = (job['勤務地'] || ''); // Assuming Pref is in Location
-                const jCat = (job['職種大枠'] || '');
-                const jSalMin = parseInt(job['年収下限'] || 0);
-                const jFeatures = (job['特徴タグ'] || '');
-
-                // Region Logic: Simple include check for prefecture is easy, 
-                // but for region check we can use the REGION_PREF map if needed?
-                // Actually usually location string contains prefecture.
-                // If "関東" selected, we check if location includes any of Tokyo, Kanagawa...
-                if (region) {
-                    if (pref) {
-                        // Specific Pref selected
-                        if (!jPref.includes(pref)) return false;
-                    } else {
-                        // Region selected -> check if valid prefs in this region
-                        const validPrefs = REGION_PREF[region] || [];
-                        const match = validPrefs.some(p => jPref.includes(p));
-                        if (!match) return false;
-                    }
-                }
-
-                if (category && !jCat.includes(category)) return false;
-                if (detail && !jDetail.includes(detail)) return false;
-                if (minSalary > 0 && jSalMin < minSalary) return false;
-
-                if (checkedFeatures.length > 0) {
-                    for (const f of checkedFeatures) {
-                        if (!jFeatures.includes(f)) return false;
-                    }
-                }
-
+            let filtered=allJobs.filter(j=>{
+                const loc=(j['勤務地']||'')+(j['都道府県']||'')+(j['市区町村']||'');
+                const jCat=(j['施設形態']||j['職種大枠']||'');
+                const jSal=parseInt(j['年収下限']||0);
+                const jFeat=(j['特徴タグ']||'')+(j['タグ（特徴）']||'');
+                const jEmp=(j['雇用形態']||'');
+                if(kw){const txt=[j['求人タイトル'],j['施設形態'],j['職種'],j['業務内容'],j['勤務地'],j['都道府県'],j['施設名'],j['タグ（特徴）'],j['特徴タグ'],j['雇用形態']].join(' ').toLowerCase();if(!txt.includes(kw))return false;}
+                if(region){if(pref){if(!loc.includes(pref))return false;}else{const ps=REGION_PREF[region]||[];if(!ps.some(p=>loc.includes(p)))return false;}}
+                if(cat&&!jCat.includes(cat))return false;
+                if(minSal>0&&jSal<minSal)return false;
+                if(emp&&!jEmp.includes(emp))return false;
+                if(feats.length>0&&!feats.every(f=>jFeat.includes(f)))return false;
                 return true;
             });
-
-            // Sort
-            if (sortMode === 'salary_desc') {
-                filtered.sort((a, b) => (parseInt(b['年収下限'] || 0) - parseInt(a['年収下限'] || 0)));
-            } else if (sortMode === 'salary_asc') {
-                filtered.sort((a, b) => (parseInt(a['年収下限'] || 0) - parseInt(b['年収下限'] || 0)));
-            } else {
-                filtered.reverse();
-            }
-
-            currentFilteredJobs = filtered;
-            currentPage = 1;
-
-            const container = document.getElementById('jobsContainer');
-            container.innerHTML = '';
+            if(sort==='salary_desc')filtered.sort((a,b)=>parseInt(b['年収下限']||0)-parseInt(a['年収下限']||0));
+            else if(sort==='salary_asc')filtered.sort((a,b)=>parseInt(a['年収下限']||0)-parseInt(b['年収下限']||0));
+            currentFilteredJobs=filtered;
+            document.getElementById('resultCount').textContent=`${filtered.length}件の求人`;
             renderPage();
         }
 
-        function renderPage() {
-            const container = document.getElementById('jobsContainer');
-            container.innerHTML = ''; // Clear current items
-
-            if (currentFilteredJobs.length === 0) {
-                container.innerHTML = '<div class="loading">条件に一致する求人がありませんでした</div>';
-                return;
-            }
-
-            const totalPages = Math.ceil(currentFilteredJobs.length / ITEMS_PER_PAGE);
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
-
-            const start = (currentPage - 1) * ITEMS_PER_PAGE;
-            const end = start + ITEMS_PER_PAGE;
-            const pageItems = currentFilteredJobs.slice(start, end);
-
-            const html = pageItems.map(job => {
-                const id = job['求人番号'] || job['求人ID'];
-                const title = job['求人タイトル'] || '求人詳細';
-                
-                // 施設情報（新CSV対応）
-                const facilityName = job['施設名'] || job['企業名'] || '非公開施設';
-                const facilityType = job['施設形態'] || '';
-                
-                // 勤務地（都道府県+市区町村）
-                const prefecture = job['都道府県'] || '';
-                const city = job['市区町村'] || '';
-                const location = prefecture && city ? `${prefecture}${city}` : (job['勤務地'] || '-');
-                
-                // 給与（年収優先、月給・時給でフォールバック）
-                const salary = job['年収'] || job['月給'] || job['時給'] || '-';
-                
-                // 職種
-                const jobType = job['職種'] || job['職種大枠'] || '';
-
-                // タグ（新フィールド「タグ（特徴）」を優先）
-                const tagsRaw = job['タグ（特徴）'] || job['特徴タグ'] || '';
-                const tagList = tagsRaw.split(',').filter(Boolean).map(t => t.trim());
-                const tagHtml = tagList.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('');
-
-                // POINT1-3（おすすめポイント）
-                const point1 = job['POINT1'] || '';
-                const point2 = job['POINT2'] || '';
-                const point3 = job['POINT3'] || '';
-                const points = [point1, point2, point3].filter(Boolean);
-                const pointsPreview = points.length > 0 ? points[0] : '';
-
-                // おすすめバッジ
-                const isRec = (String(job['おすすめ求人'] || '').match(/true|1|おすすめ/i));
-                const recBadge = isRec ? `<span class="tag accent" style="background:#ffd700; color:#333;">★おすすめ</span>` : '';
-                const facilityBadge = facilityType ? `<span class="tag accent" style="background:#e3f2fd; color:#1976d2;">${facilityType}</span>` : '';
-
-                return `
-                    <a href="detail.html?id=${id}&uid=${window.LINE_UID}" target="_blank" class="job-card">
-                        <div class="job-header">
-                            <span>No.${id}</span>
-                            <span>${truncate(location, 12)}</span>
-                        </div>
-                        <div class="company-name">${facilityName}</div>
-                        <div class="job-title">${title}</div>
-                        <div class="tag-list">
-                            ${recBadge}
-                            ${facilityBadge}
-                            ${tagHtml}
-                        </div>
-                        ${pointsPreview ? `<div class="features-preview">
-                           <b>✨ </b>${pointsPreview}
-                        </div>` : ''}
-                        <div class="job-meta">
-                            <span>💰</span><span>${salary}</span>
-                            <span>👨‍⚕️</span><span>${truncate(jobType, 18)}</span>
-                        </div>
-                    </a>
-                `;
+        function renderPage(){
+            const con=document.getElementById('jobsContainer');
+            const tp=Math.ceil(currentFilteredJobs.length/ITEMS_PER_PAGE);
+            const start=(currentPage-1)*ITEMS_PER_PAGE;
+            const page=currentFilteredJobs.slice(start,start+ITEMS_PER_PAGE);
+            if(!page.length){con.innerHTML='<div class="text-center py-10 text-gray-500 bg-white rounded-xl">条件に合う求人が見つかりませんでした。</div>';return;}
+            con.innerHTML=page.map((j,i)=>{
+                const id=j['求人番号']||j['求人ID'],title=j['求人タイトル']||'求人',fac=j['施設名']||'非公開';
+                const salary=j['年収']||'応相談',loc=truncate((j['都道府県']||'')+(j['市区町村']||'')+' '+(j['最寄駅（路線）']||''),25);
+                const ft=j['施設形態']||'',emp=j['雇用形態']||'';
+                const feats=(j['特徴タグ']||j['タグ（特徴）']||'').split(',').filter(Boolean).slice(0,3);
+                if(ft)feats.unshift(ft);
+                const desc=truncate(j['業務内容']||j['担当業務']||'',60);
+                const inCart=cart.has(String(id));
+                const tags=feats.map(t=>t===ft?`<span class="text-xs px-2 py-0.5 rounded bg-primary-light text-primary">${t}</span>`:`<span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">${t}</span>`).join('');
+                return `<div class="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow animate-fade-in-up" style="animation-delay:${i*30}ms"><a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="block p-4 no-underline text-inherit"><div class="flex items-center justify-between mb-2"><span class="text-xs text-gray-400">No.${id}</span>${emp?`<span class="text-xs text-gray-500 border border-gray-200 rounded px-1.5 py-0.5">${emp}</span>`:''}</div><div class="text-sm font-bold text-gray-700 mb-1">${fac}</div><h3 class="text-base font-bold text-primary leading-snug mb-3">${title}</h3><div class="flex flex-wrap gap-1.5 mb-3">${tags}</div>${desc?`<p class="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">${desc}</p>`:''}<div class="flex items-center gap-4 text-sm text-gray-600"><span class="flex items-center gap-1">📍 ${loc||'---'}</span><span class="flex items-center gap-1 font-bold text-primary">💰 ${salary}</span></div></a><div class="px-4 pb-3 flex items-center justify-between border-t border-gray-50 pt-2"><button class="fav-btn ${inCart?'text-red-500':'text-gray-300'} hover:scale-110 transition-transform p-1" onclick="event.stopPropagation();toggleCart('${id}',this)"><svg class="w-6 h-6 heart-icon" fill="${inCart?'currentColor':'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></button><a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="text-xs text-primary font-medium hover:underline">詳細を見る →</a></div></div>`;
             }).join('');
-
-            container.innerHTML = html;
-            renderPaginationControls(totalPages);
+            if(tp>1){con.innerHTML+=`<div class="flex justify-center items-center gap-4 mt-6"><button onclick="changePage(-1)" ${currentPage<=1?'disabled':''} class="px-5 py-2.5 rounded-full font-bold text-sm ${currentPage<=1?'bg-gray-100 text-gray-400':'bg-white text-gray-700 shadow-sm hover:shadow-md'} transition-shadow">← 前へ</button><span class="text-sm text-gray-500 font-bold">${currentPage} / ${tp}</span><button onclick="changePage(1)" ${currentPage>=tp?'disabled':''} class="px-5 py-2.5 rounded-full font-bold text-sm ${currentPage>=tp?'bg-gray-100 text-gray-400':'bg-white text-gray-700 shadow-sm hover:shadow-md'} transition-shadow">次へ →</button></div>`;}
         }
-
-        function renderPaginationControls(totalPages) {
-            const container = document.getElementById('jobsContainer');
-
-            const div = document.createElement('div');
-            div.className = 'pagination-controls';
-
-            // Prev
-            const prevBtn = document.createElement('button');
-            prevBtn.className = 'page-btn';
-            prevBtn.innerText = '前へ';
-            prevBtn.disabled = currentPage === 1;
-            prevBtn.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderPage();
-                    document.getElementById('jobsContainer').scrollIntoView({ behavior: 'smooth' });
-                }
-            };
-
-            // Info
-            const info = document.createElement('span');
-            info.className = 'page-info';
-            info.innerText = `${currentPage} / ${totalPages}`;
-
-            // Next
-            const nextBtn = document.createElement('button');
-            nextBtn.className = 'page-btn';
-            nextBtn.innerText = '次へ';
-            nextBtn.disabled = currentPage === totalPages;
-            nextBtn.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderPage();
-                    document.getElementById('jobsContainer').scrollIntoView({ behavior: 'smooth' });
-                }
-            };
-
-            div.appendChild(prevBtn);
-            div.appendChild(info);
-            div.appendChild(nextBtn);
-
-            container.appendChild(div);
-        }
-
-        function setupInteractions() {
-            document.getElementById('searchBtn').addEventListener('click', filterAndRender);
-            document.getElementById('sortSelect').addEventListener('change', filterAndRender);
-        }
-
-        function truncate(str, len) {
-            if (!str) return '';
-            return str.length > len ? str.substring(0, len) + '...' : str;
-        }
+        function changePage(d){const tp=Math.ceil(currentFilteredJobs.length/ITEMS_PER_PAGE);currentPage=Math.max(1,Math.min(tp,currentPage+d));renderPage();window.scrollTo({top:0,behavior:'smooth'});}
     </script>
 </body>
-
 </html>

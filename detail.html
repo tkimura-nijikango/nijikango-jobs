@@ -5,376 +5,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>求人詳細 - ニジ看護</title>
+    <link rel="icon" type="image/png" href="./logo.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../survey/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f88caa',
+                        'primary-hover': '#e07b99',
+                        'primary-light': '#fff0f4',
+                        'primary-dark': '#d16a88',
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'Hiragino Sans', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        /* CSS Variables Override/Addition */
-        :root {
-            --color-bg-light: #f9f9f9;
-        }
-
-        body {
-            background-color: var(--color-bg-light);
-            padding-bottom: 80px;
-        }
-
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .back-btn {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.9rem;
-        }
-
-        .container {
-            padding: var(--spacing-md);
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .job-card {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: var(--spacing-md);
-        }
-
-        .job-id {
-            color: var(--color-text-light);
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-        }
-
-        .job-title {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--color-accent);
-            line-height: 1.4;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .tag {
-            font-size: 0.8rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: #f0f0f0;
-            color: #555;
-        }
-
-        .tag.accent {
-            background: var(--color-accent-light);
-            color: var(--color-accent);
-        }
-
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-
-        .info-table th,
-        .info-table td {
-            text-align: left;
-            padding: 12px 8px;
-            border-bottom: 1px solid #eee;
-            vertical-align: top;
-        }
-
-        .info-table th {
-            width: 30%;
-            color: var(--color-text-light);
-            font-weight: normal;
-        }
-
-        .info-table td {
-            color: var(--color-text);
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        /* Action Bar (Fixed Bottom) */
-        .action-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            padding: var(--spacing-md);
-            display: flex;
-            justify-content: center;
-            gap: var(--spacing-md);
-            z-index: 1000;
-        }
-
-        .apply-btn {
-            flex: 1;
-            max-width: 400px;
-            background: var(--color-accent);
-            /* Orange */
-            color: white;
-            font-weight: bold;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px rgba(248, 140, 170, 0.3);
-            transition: transform 0.2s;
-        }
-
-        .apply-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Cute Loading Animation */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .cute-loader {
-            width: 60px;
-            height: 60px;
-            background-color: var(--color-accent);
-            border-radius: 50%;
-            animation: bounce 1.0s infinite ease-in-out;
-            position: relative;
-        }
-
-        .cute-loader::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 12px;
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .cute-loader::after {
-            content: '';
-            position: absolute;
-            top: 15px;
-            right: 12px;
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .loader-text {
-            margin-top: 20px;
-            color: var(--color-accent);
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: scale(0.0);
-                -webkit-transform: scale(0.0);
-            }
-
-            50% {
-                transform: scale(1.0);
-                -webkit-transform: scale(1.0);
-            }
-        }
-
-        /* Custom Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            /* hidden by default */
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-
-        .modal-box {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-text {
-            color: #333;
-            font-size: 1.1rem;
-            line-height: 1.5;
-            margin-bottom: 25px;
-            white-space: pre-wrap;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .modal-btn {
-            border: none;
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            min-width: 120px;
-        }
-
-        .modal-btn:active {
-            opacity: 0.8;
-        }
-
-        .modal-btn.primary {
-            background-color: var(--color-accent);
-            color: white;
-        }
-
-        .modal-btn.secondary {
-            background-color: #f0f0f0;
-            color: #666;
-        }
-
-        /* Error */
-        .error-msg {
-            text-align: center;
-            padding: 40px;
-            color: var(--color-error);
-        }
+        @keyframes bounce-loader { 0%,100%{transform:scale(0)} 50%{transform:scale(1)} }
+        .animate-bounce-loader { animation: bounce-loader 1s infinite ease-in-out; }
     </style>
 </head>
 
-<body>
+<body class="bg-gray-50 font-sans pb-24">
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="cute-loader"></div>
-        <div class="loader-text">読み込み中...</div>
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 flex flex-col justify-center items-center z-[9999]">
+        <div class="w-16 h-16 bg-primary rounded-full animate-bounce-loader relative">
+            <span class="absolute top-4 left-3 w-3 h-3 bg-white rounded-full"></span>
+            <span class="absolute top-4 right-3 w-3 h-3 bg-white rounded-full"></span>
+        </div>
+        <div class="mt-5 text-primary font-bold text-lg">読み込み中...</div>
     </div>
 
-    <!-- Custom Modal -->
-    <div id="customModal" class="modal-overlay">
-        <div class="modal-box">
-            <div id="modalText" class="modal-text">メッセージ</div>
-            <div id="modalButtons" class="modal-buttons">
-                <!-- Dynamically injected -->
-            </div>
+    <!-- Modal -->
+    <div id="customModal" class="fixed inset-0 bg-black/50 hidden justify-center items-center z-[10000]">
+        <div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-[400px] shadow-2xl">
+            <div id="modalText" class="text-gray-800 text-lg leading-relaxed mb-6 whitespace-pre-wrap"></div>
+            <div id="modalButtons" class="flex justify-center gap-4"></div>
         </div>
     </div>
 
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <a href="javascript:void(0)" onclick="closeTabOrBack()" class="back-btn">
-                <span>◀</span> 閉じる
-            </a>
-            <div class="header__logo" style="font-size:1rem;">求人詳細</div>
-            <div style="width:50px;"></div> <!-- Spacer -->
-        </header>
-
-        <div id="content" class="container">
-            <!-- Driven by JS -->
+    <!-- Header -->
+    <header class="sticky top-0 z-[1000] bg-white shadow-sm border-b border-gray-100 flex justify-between items-center px-4 h-14">
+        <a href="javascript:void(0)" onclick="closeTabOrBack()"
+            class="no-underline text-gray-800 font-bold flex items-center gap-1 text-sm">
+            <span>&#9664;</span> <span>戻る</span>
+        </a>
+        <div class="flex items-center gap-2">
+            <img src="logo.jpg" alt="ニジ看護" class="h-7 w-auto">
+            <span class="text-base font-bold text-primary">求人詳細</span>
         </div>
+        <div class="w-[50px]"></div>
+    </header>
 
-        <div class="action-bar" id="actionBar" style="display:none;">
-            <a href="#" id="applyBtn" class="apply-btn">この求人に応募する</a>
-        </div>
+    <!-- Content -->
+    <div id="content" class="p-4 max-w-[800px] mx-auto"></div>
+
+    <!-- Action Bar -->
+    <div class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] px-4 py-3 flex justify-center gap-3 z-[1000]"
+        id="actionBar" style="display:none;">
+        <button id="addCartBtn"
+            class="flex-1 max-w-[180px] bg-white text-primary border-2 border-primary font-bold py-3.5 rounded-lg text-base cursor-pointer flex items-center justify-center transition-all active:scale-[0.98]">
+            ＋ 気になる
+        </button>
+        <button id="applyBtn"
+            class="flex-1 max-w-[400px] bg-primary text-white font-bold border-none py-3.5 rounded-lg text-base cursor-pointer flex items-center justify-center shadow-[0_4px_6px_rgba(248,140,170,0.3)] transition-all active:scale-[0.98]">
+            この求人に応募する
+        </button>
     </div>
 
-    <!-- JSZip for client-side unzipping -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script>
         const DATA_URL = './jobs.zip';
+        const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwT4dlPuH3edMjF5aWRV_TgAzU0Rz7YS76Zb-H0Dv3G02ph0DR1KY006ldArCJZngFs/exec';
+
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get('id');
+        const uid = params.get('uid') || '';
+
+        let currentJob = null;
+        const cart = new Set(JSON.parse(localStorage.getItem('nijikango_cart') || '[]').map(String));
 
         window.addEventListener('DOMContentLoaded', async () => {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            const uid = params.get('uid'); // LINE User ID
-
-            if (!id) {
-                showError('求人が指定されていません');
+            if (!jobId) {
+                showError('求人IDが指定されていません。');
                 return;
             }
 
             try {
-                // 1. Try Cache first
-                let allJobs = getCachedJobs();
+                let job = null;
 
-                if (!allJobs) {
-                    // 2. Fetch if not cached
-                    console.log('Fetching fresh data...');
-                    allJobs = await fetchJobs();
-                    // Cache it (ttl 1 hour)
-                    cacheJobs(allJobs);
-                } else {
-                    console.log('Using cached data');
+                // Strategy 1: localStorage cache (instant)
+                const cached = getCachedJobs();
+                if (cached) {
+                    job = cached.find(j => String(j['求人番号'] || j['求人ID']) === String(jobId));
+                    if (job) console.log('Loaded from cache');
                 }
 
-                // 3. Find Job
-                // Number vs String loose comparison
-                const job = allJobs.find(j => String(j['求人番号'] || j['求人ID']) === String(id));
+                // Strategy 2: Fetch from jobs.zip
+                if (!job) {
+                    const res = await fetch(`${DATA_URL}?t=${Date.now()}`);
+                    if (!res.ok) throw new Error('Failed to load');
+                    const blob = await res.blob();
+                    const zip = await JSZip.loadAsync(blob);
+                    const fn = Object.keys(zip.files).find(n => n.endsWith('.json'));
+                    if (!fn) throw new Error('No JSON');
+                    const txt = await zip.files[fn].async('string');
+                    const data = JSON.parse(txt);
+                    job = data.find(j => String(j['求人番号'] || j['求人ID']) === String(jobId));
+                    if (job) console.log('Loaded from zip');
+                }
 
                 if (job) {
-                    renderJob(job, uid);
+                    currentJob = job;
+                    renderJob(job);
                 } else {
-                    showError('該当する求人が見つかりませんでした');
+                    showError('該当する求人が見つかりませんでした。');
                 }
-
             } catch (e) {
                 console.error(e);
-                showError('データの読み込みに失敗しました');
+                showError('データの読み込みに失敗しました。');
             } finally {
-                // Minimum loading time for animation (optional, implies "sending" feeling)
                 setTimeout(() => {
                     document.getElementById('loadingOverlay').style.display = 'none';
-                }, 500);
+                }, 400);
             }
         });
 
@@ -382,202 +141,243 @@
             try {
                 const cache = localStorage.getItem('jobs_cache');
                 if (!cache) return null;
-
                 const parsed = JSON.parse(cache);
-                const now = new Date().getTime();
-
-                // Cache valid for 3 hours
-                if (now - parsed.timestamp < 3 * 60 * 60 * 1000) {
-                    return parsed.data;
-                }
+                if (Date.now() - parsed.timestamp < 3 * 60 * 60 * 1000) return parsed.data;
                 return null;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
-        function cacheJobs(data) {
-            try {
-                const cache = {
-                    timestamp: new Date().getTime(),
-                    data: data
-                };
-                localStorage.setItem('jobs_cache', JSON.stringify(cache));
-            } catch (e) {
-                console.warn('Cache failed (likely quota exceeded)', e);
-            }
-        }
-
-        async function fetchJobs() {
-            const res = await fetch(`${DATA_URL}?t=${new Date().getTime()}`);
-            if (!res.ok) throw new Error('Network error');
-
-            const blob = await res.blob();
-            const zip = await JSZip.loadAsync(blob);
-            const jsonFileName = Object.keys(zip.files).find(name => name.endsWith('.json'));
-            const jsonText = await zip.files[jsonFileName].async('string');
-            return JSON.parse(jsonText);
-        }
-
-        function renderJob(job, uid) {
+        function renderJob(job) {
             const title = job['求人タイトル'] || '求人詳細';
-            const company = job['企業名'] || '非公開企業';
+            const facility = job['施設名'] || '非公開';
+            const jobNumber = String(job['求人番号'] || job['求人ID'] || '');
 
-            // Feature Tags
-            const category = job['職種大枠'] || '';
-            const featuresRaw = job['特徴タグ'] || '';
+            // Tags
+            const facilityType = job['施設形態'] || '';
+            const empType = job['雇用形態'] || '';
+            const featuresRaw = job['タグ（特徴）'] || job['特徴タグ'] || '';
             const tags = featuresRaw.split(',').filter(Boolean);
-            if (category) tags.unshift(category);
+            if (facilityType) tags.unshift(facilityType);
 
-            const tagHtml = tags.map(t => `<span class="tag ${t === category ? 'accent' : ''}">${t}</span>`).join('');
-
-            // Basic Info table
-            const fields = [
-                { label: '職種詳細', value: job['職種詳細'] },
-                { label: '仕事内容', value: job['仕事内容'] },
-                { label: '応募条件', value: job['応募条件'] },
-                { label: '勤務地', value: job['勤務地'] },
-                { label: '雇用形態', value: job['雇用形態'] },
-                { label: '給与', value: job['年収'] },
-                { label: '休日休暇', value: job['休日休暇'] || job['休日'] }, // Column name check
-                { label: '福利厚生', value: job['福利厚生'] }
-            ];
-
-            const tableHtml = fields.map(f => {
-                const val = f.value || '-';
-                return `<tr><th>${f.label}</th><td>${val}</td></tr>`;
+            const tagHtml = tags.map(t => {
+                if (t === facilityType) {
+                    return `<span class="text-xs px-2.5 py-1 rounded bg-primary-light text-primary font-medium">${t}</span>`;
+                }
+                return `<span class="text-xs px-2.5 py-1 rounded bg-gray-100 text-gray-600">${t}</span>`;
             }).join('');
 
+            // Points
+            const p1 = job['POINT1'] || '';
+            const p2 = job['POINT2'] || '';
+            const p3 = job['POINT3'] || '';
+            const points = [p1, p2, p3].filter(Boolean);
+            const pointsHtml = points.length > 0 ? `
+                <div class="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100 mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-base">✨</span>
+                        <h2 class="text-sm font-bold text-primary">おすすめポイント</h2>
+                    </div>
+                    <ul class="space-y-2">
+                        ${points.map(p => `<li class="flex items-start gap-2 text-sm text-gray-700"><span class="text-primary mt-0.5">●</span><span>${escapeHtml(p)}</span></li>`).join('')}
+                    </ul>
+                </div>` : '';
+
+            // Interview note
+            const note = job['取材NOTE'] || '';
+            const noteHtml = note ? `
+                <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-100 mb-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-base">📝</span>
+                        <h2 class="text-sm font-bold text-yellow-700">取材メモ</h2>
+                    </div>
+                    <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${escapeHtml(note)}</p>
+                </div>` : '';
+
+            // Detail table fields
+            const fields = [
+                { label: '施設形態', value: facilityType },
+                { label: '職種', value: job['職種'] || '' },
+                { label: '雇用形態', value: empType },
+                { label: '勤務形態', value: job['勤務形態'] || '' },
+                { label: '勤務地', value: buildLocation(job) },
+                { label: '最寄駅', value: job['最寄駅（路線）'] || '' },
+                { label: '年収', value: job['年収'] || '', highlight: true },
+                { label: '月給', value: job['月給'] || '' },
+                { label: '時給', value: job['時給'] || '' },
+                { label: '給与備考', value: job['給与備考'] || '' },
+                { label: '各種手当', value: job['各種手当'] || '' },
+                { label: '業務内容', value: job['業務内容'] || job['担当業務'] || '' },
+                { label: '経験・スキル', value: job['経験・スキル'] || '' },
+                { label: '勤務時間', value: job['勤務時間'] || '' },
+                { label: '休日', value: job['休日'] || '' },
+                { label: '福利厚生', value: job['福利厚生'] || '' },
+                { label: '通勤交通費', value: job['通勤交通費'] || '' },
+                { label: '診療科目', value: job['診療科目'] || '' },
+            ].filter(f => f.value && String(f.value).trim() && f.value !== '-');
+
+            const tableHtml = fields.map(f => `
+                <tr>
+                    <th class="text-left py-3 px-2 border-b border-gray-100 align-top w-[28%] text-gray-500 font-normal text-sm">${f.label}</th>
+                    <td class="text-left py-3 px-2 border-b border-gray-100 align-top leading-relaxed whitespace-pre-wrap text-sm ${f.highlight ? 'text-primary font-bold' : 'text-gray-800'}">${escapeHtml(String(f.value))}</td>
+                </tr>`).join('');
+
             const html = `
-                <div class="job-card">
-                    <div class="job-id">求人No. ${job['求人番号'] || job['求人ID']}</div>
-                    <h1 class="job-title">${title}</h1>
-                    <div class="company-name" style="margin-bottom:16px;">${company}</div>
-                    <div class="tag-list">${tagHtml}</div>
-                    
-                    <table class="info-table">
+                <div class="bg-white rounded-xl p-5 shadow-sm mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-400 text-xs">No.${jobNumber}</span>
+                        ${empType ? `<span class="text-xs text-gray-500 border border-gray-200 rounded px-1.5 py-0.5">${empType}</span>` : ''}
+                    </div>
+                    <div class="text-sm font-bold text-gray-700 mb-1">${escapeHtml(facility)}</div>
+                    <h1 class="text-xl font-bold text-primary leading-snug mb-4">${escapeHtml(title)}</h1>
+                    <div class="flex flex-wrap gap-2 mb-4">${tagHtml}</div>
+
+                    <!-- Salary highlight -->
+                    ${job['年収'] ? `
+                    <div class="bg-primary-light rounded-lg p-3 mb-4 flex items-center gap-2">
+                        <span class="text-lg">💰</span>
+                        <span class="text-primary font-bold text-lg">${escapeHtml(job['年収'])}</span>
+                    </div>` : ''}
+                </div>
+
+                ${pointsHtml}
+                ${noteHtml}
+
+                <div class="bg-white rounded-xl p-5 shadow-sm mb-4">
+                    <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>
+                        求人詳細
+                    </h2>
+                    <table class="w-full border-collapse text-sm">
                         ${tableHtml}
                     </table>
                 </div>
+
+                <div style="height:20px;"></div>
             `;
 
             document.getElementById('content').innerHTML = html;
 
-            // Setup Apply Button (API Call)
-            const applyBtn = document.getElementById('applyBtn');
-            // GAS Web App URL (Current Deployment)
-            const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyW2DFQ1EihC98tpz1tH0kvs-KUYc8byTizvPoedhosEp9lHP-Xyi9lywzuEfDk29qMlg/exec";
+            // Cart button
+            const cartBtn = document.getElementById('addCartBtn');
+            updateCartBtn(cartBtn, jobNumber);
 
-            applyBtn.href = "javascript:void(0)";
+            cartBtn.onclick = () => {
+                if (cart.has(jobNumber)) {
+                    cart.delete(jobNumber);
+                } else {
+                    cart.add(jobNumber);
+                }
+                localStorage.setItem('nijikango_cart', JSON.stringify(Array.from(cart)));
+                updateCartBtn(cartBtn, jobNumber);
+            };
+
+            // Apply button
+            const applyBtn = document.getElementById('applyBtn');
             applyBtn.onclick = async (e) => {
                 e.preventDefault();
                 if (applyBtn.classList.contains('disabled')) return;
 
-                const jobNumber = job['求人番号'] || job['求人ID'];
+                showModal('応募処理中です...');
+                await new Promise(r => setTimeout(r, 600));
 
-                // 1. 「応募中...」を表示 (0.5～1秒待機)
-                showModal('応募しています...', false);
-                await new Promise(resolve => setTimeout(resolve, 800)); // 0.8秒待機
+                showModal('応募が完了しました！\n\nLINEに正式な案内をお送りするので、\nトーク画面に戻ってお待ちください', true);
 
-                // 2. 「応募完了」メッセージに切り替え
-                showModal(
-                    '応募が完了しました！🎉\n\nLINEに正式な案内をお送りしますので、\nトーク画面に戻ってお待ちください。',
-                    // 閉じるボタンは自前で追加するのでfalse
-                    false
-                );
-
-                // 閉じるボタンを追加（安心感のため）
-                const btns = document.getElementById('modalButtons');
-                const closeBtn = document.createElement('button');
-                closeBtn.className = 'modal-btn primary';
-                closeBtn.textContent = '閉じる';
-                closeBtn.onclick = () => window.close(); // Try to close
-                btns.appendChild(closeBtn);
-
-                // Disable button
                 applyBtn.textContent = '応募済み';
                 applyBtn.classList.add('disabled');
-                applyBtn.style.backgroundColor = '#cccccc';
+                applyBtn.style.backgroundColor = '#ccc';
                 applyBtn.style.pointerEvents = 'none';
+                applyBtn.style.boxShadow = 'none';
 
-                // 3. バックグラウンドでAPI送信
-                try {
-                    const res = await fetch(`${GAS_API_URL}?action=apply_job&uid=${uid}&jobId=${encodeURIComponent(jobNumber)}`);
-                    const json = await res.json();
-                    if (!json.success && json.status !== 'success') {
-                        console.error('Apply Failed:', json);
-                    } else {
-                        console.log('Apply Success');
-                    }
-                } catch (err) {
-                    console.error('Network Error:', err);
+                // Send apply to GAS
+                if (uid) {
+                    try {
+                        fetch(GAS_API_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'text/plain' },
+                            body: JSON.stringify({ action: 'apply', userId: uid, jobId: jobNumber })
+                        }).catch(err => console.error('Apply error:', err));
+                    } catch (err) { console.error('Apply error:', err); }
                 }
             };
 
-            function showModal(text, hasCloseBtn = true) {
-                const modal = document.getElementById('customModal');
-                const msg = document.getElementById('modalText');
-                const btns = document.getElementById('modalButtons');
+            document.getElementById('actionBar').style.display = 'flex';
+            document.title = `${title} - ニジ看護`;
+        }
 
-                msg.textContent = text;
-                btns.innerHTML = '';
+        function buildLocation(job) {
+            const parts = [
+                job['都道府県'] || '',
+                job['市区町村'] || '',
+                job['勤務地'] || ''
+            ].filter(Boolean);
+            // Deduplicate if 勤務地 already contains prefecture/city
+            if (parts.length > 1) {
+                const loc = parts[parts.length - 1];
+                return parts.filter((p, i) => i === parts.length - 1 || !loc.includes(p)).concat(
+                    loc.includes(parts[0]) ? [] : []
+                ).join(' ') || loc;
+            }
+            return parts.join(' ') || '';
+        }
 
-                if (hasCloseBtn) {
-                    const btn = document.createElement('button');
-                    btn.className = 'modal-btn primary';
-                    btn.textContent = '閉じる';
-                    btn.onclick = () => modal.style.display = 'none';
-                    btns.appendChild(btn);
-                }
+        function updateCartBtn(btn, jobNumber) {
+            if (cart.has(jobNumber)) {
+                btn.textContent = '✔ 選択済み';
+                btn.classList.remove('bg-white');
+                btn.classList.add('bg-primary-light');
+            } else {
+                btn.textContent = '＋ 気になる';
+                btn.classList.remove('bg-primary-light');
+                btn.classList.add('bg-white');
+            }
+        }
 
-                modal.style.display = 'flex';
+        function showModal(text, hasCloseBtn = false) {
+            const modal = document.getElementById('customModal');
+            const msg = document.getElementById('modalText');
+            const btns = document.getElementById('modalButtons');
+
+            msg.textContent = text;
+            btns.innerHTML = '';
+
+            if (hasCloseBtn) {
+                const btn = document.createElement('button');
+                btn.className = 'bg-primary text-white border-none py-3 px-6 rounded-full text-base font-bold cursor-pointer transition-opacity active:opacity-80 min-w-[120px]';
+                btn.textContent = '閉じる';
+                btn.onclick = () => {
+                    modal.style.display = 'none';
+                    modal.classList.add('hidden');
+                    closeTabOrBack();
+                };
+                btns.appendChild(btn);
             }
 
-            document.getElementById('actionBar').style.display = 'flex';
-
-            // 🐛 Debug Info for User
-            const debugDiv = document.createElement('div');
-            debugDiv.style.padding = '20px';
-            debugDiv.style.color = '#ccc';
-            debugDiv.style.fontSize = '10px';
-            debugDiv.style.wordBreak = 'break-all';
-            debugDiv.innerHTML = `
-                <p>Debug Info:</p>
-                <ul>
-                    <li>UID: ${uid || 'Not Set'}</li>
-                    <li>Job ID: ${job['求人番号'] || job['求人ID']}</li>
-                    <li>Mode: Direct API Apply</li>
-                </ul>
-            `;
-            document.getElementById('content').appendChild(debugDiv);
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
         }
 
         function showError(msg) {
-            document.getElementById('content').innerHTML = `<div class="error-msg">${msg}</div>`;
+            document.getElementById('content').innerHTML = `<div class="text-center py-10 text-red-500 bg-white rounded-xl mt-4">${msg}</div>`;
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML.replace(/\n/g, '<br>');
+        }
+
         function closeTabOrBack() {
-            // UIDを取得（パラメータに存在する場合）
-            const params = new URLSearchParams(window.location.search);
-            const uid = params.get('uid') || '';
-
-            // 1. まずウィンドウを閉じることを試みる
-            // (LINEブラウザなどで開かれた新規ウィンドウの場合)
-            try {
-                window.close();
-            } catch (e) {
-                console.log('window.close failed', e);
-            }
-
-            // 2. 履歴があって、かつ同一ドメインからの遷移なら戻る
+            // If there's history from same domain, go back
             if (window.history.length > 1 && document.referrer && document.referrer.includes(location.hostname)) {
                 window.history.back();
-            } else {
-                // 3. それ以外（閉じられない、履歴がない）は一覧へ戻る
-                const target = uid ? `index.html?uid=${uid}` : 'index.html';
-                window.location.href = target;
+                return;
             }
+            // Otherwise redirect to list page
+            let target = 'index.html';
+            if (uid) target += `?uid=${encodeURIComponent(uid)}`;
+            window.location.href = target;
         }
     </script>
 </body>
