@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>求人詳細 - ニジ看護</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../survey/styles.css">
+    <style>
+        /* CSS Variables Override/Addition */
+        :root {
+            --color-bg-light: #f9f9f9;
+        }
+
+        body {
+            background-color: var(--color-bg-light);
+            padding-bottom: 80px;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--color-text);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            padding: var(--spacing-md);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .job-id {
+            color: var(--color-text-light);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .job-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--color-accent);
+            line-height: 1.4;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tag {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .tag.accent {
+            background: var(--color-accent-light);
+            color: var(--color-accent);
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .info-table th,
+        .info-table td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .info-table th {
+            width: 30%;
+            color: var(--color-text-light);
+            font-weight: normal;
+        }
+
+        .info-table td {
+            color: var(--color-text);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Action Bar (Fixed Bottom) */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            padding: var(--spacing-md);
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+            z-index: 1000;
+        }
+
+        .apply-btn {
+            flex: 1;
+            max-width: 400px;
+            background: var(--color-accent);
+            /* Orange */
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(248, 140, 170, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .apply-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Cute Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .cute-loader {
+            width: 60px;
+            height: 60px;
+            background-color: var(--color-accent);
+            border-radius: 50%;
+            animation: bounce 1.0s infinite ease-in-out;
+            position: relative;
+        }
+
+        .cute-loader::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 12px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .cute-loader::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 12px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            color: var(--color-accent);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: scale(0.0);
+                -webkit-transform: scale(0.0);
+            }
+
+            50% {
+                transform: scale(1.0);
+                -webkit-transform: scale(1.0);
+            }
+        }
+
+        /* Custom Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            /* hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-text {
+            color: #333;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            min-width: 120px;
+        }
+
+        .modal-btn:active {
+            opacity: 0.8;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--color-accent);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        /* Error */
+        .error-msg {
+            text-align: center;
+            padding: 40px;
+            color: var(--color-error);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="cute-loader"></div>
+        <div class="loader-text">読み込み中...</div>
+    </div>
+
+    <!-- Custom Modal -->
+    <div id="customModal" class="modal-overlay">
+        <div class="modal-box">
+            <div id="modalText" class="modal-text">メッセージ</div>
+            <div id="modalButtons" class="modal-buttons">
+                <!-- Dynamically injected -->
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <a href="javascript:void(0)" onclick="closeTabOrBack()" class="back-btn">
+                <span>◀</span> 閉じる
+            </a>
+            <div class="header__logo" style="font-size:1rem;">求人詳細</div>
+            <div style="width:50px;"></div> <!-- Spacer -->
+        </header>
+
+        <div id="content" class="container">
+            <!-- Driven by JS -->
+        </div>
+
+        <div class="action-bar" id="actionBar" style="display:none;">
+            <a href="#" id="applyBtn" class="apply-btn">この求人に応募する</a>
+        </div>
+    </div>
+
+    <!-- JSZip for client-side unzipping -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script>
+        const DATA_URL = './jobs.zip';
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const uid = params.get('uid'); // LINE User ID
+
+            if (!id) {
+                showError('求人が指定されていません');
+                return;
+            }
+
+            try {
+                // 1. Try Cache first
+                let allJobs = getCachedJobs();
+
+                if (!allJobs) {
+                    // 2. Fetch if not cached
+                    console.log('Fetching fresh data...');
+                    allJobs = await fetchJobs();
+                    // Cache it (ttl 1 hour)
+                    cacheJobs(allJobs);
+                } else {
+                    console.log('Using cached data');
+                }
+
+                // 3. Find Job
+                // Number vs String loose comparison
+                const job = allJobs.find(j => String(j['求人番号'] || j['求人ID']) === String(id));
+
+                if (job) {
+                    renderJob(job, uid);
+                } else {
+                    showError('該当する求人が見つかりませんでした');
+                }
+
+            } catch (e) {
+                console.error(e);
+                showError('データの読み込みに失敗しました');
+            } finally {
+                // Minimum loading time for animation (optional, implies "sending" feeling)
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                }, 500);
+            }
+        });
+
+        function getCachedJobs() {
+            try {
+                const cache = localStorage.getItem('jobs_cache');
+                if (!cache) return null;
+
+                const parsed = JSON.parse(cache);
+                const now = new Date().getTime();
+
+                // Cache valid for 3 hours
+                if (now - parsed.timestamp < 3 * 60 * 60 * 1000) {
+                    return parsed.data;
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function cacheJobs(data) {
+            try {
+                const cache = {
+                    timestamp: new Date().getTime(),
+                    data: data
+                };
+                localStorage.setItem('jobs_cache', JSON.stringify(cache));
+            } catch (e) {
+                console.warn('Cache failed (likely quota exceeded)', e);
+            }
+        }
+
+        async function fetchJobs() {
+            const res = await fetch(`${DATA_URL}?t=${new Date().getTime()}`);
+            if (!res.ok) throw new Error('Network error');
+
+            const blob = await res.blob();
+            const zip = await JSZip.loadAsync(blob);
+            const jsonFileName = Object.keys(zip.files).find(name => name.endsWith('.json'));
+            const jsonText = await zip.files[jsonFileName].async('string');
+            return JSON.parse(jsonText);
+        }
+
+        function renderJob(job, uid) {
+            const title = job['求人タイトル'] || '求人詳細';
+            const company = job['企業名'] || '非公開企業';
+
+            // Feature Tags
+            const category = job['職種大枠'] || '';
+            const featuresRaw = job['特徴タグ'] || '';
+            const tags = featuresRaw.split(',').filter(Boolean);
+            if (category) tags.unshift(category);
+
+            const tagHtml = tags.map(t => `<span class="tag ${t === category ? 'accent' : ''}">${t}</span>`).join('');
+
+            // Basic Info table
+            const fields = [
+                { label: '職種詳細', value: job['職種詳細'] },
+                { label: '仕事内容', value: job['仕事内容'] },
+                { label: '応募条件', value: job['応募条件'] },
+                { label: '勤務地', value: job['勤務地'] },
+                { label: '雇用形態', value: job['雇用形態'] },
+                { label: '給与', value: job['年収'] },
+                { label: '休日休暇', value: job['休日休暇'] || job['休日'] }, // Column name check
+                { label: '福利厚生', value: job['福利厚生'] }
+            ];
+
+            const tableHtml = fields.map(f => {
+                const val = f.value || '-';
+                return `<tr><th>${f.label}</th><td>${val}</td></tr>`;
+            }).join('');
+
+            const html = `
+                <div class="job-card">
+                    <div class="job-id">求人No. ${job['求人番号'] || job['求人ID']}</div>
+                    <h1 class="job-title">${title}</h1>
+                    <div class="company-name" style="margin-bottom:16px;">${company}</div>
+                    <div class="tag-list">${tagHtml}</div>
+                    
+                    <table class="info-table">
+                        ${tableHtml}
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = html;
+
+            // Setup Apply Button (API Call)
+            const applyBtn = document.getElementById('applyBtn');
+            // GAS Web App URL (Current Deployment)
+            const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyW2DFQ1EihC98tpz1tH0kvs-KUYc8byTizvPoedhosEp9lHP-Xyi9lywzuEfDk29qMlg/exec";
+
+            applyBtn.href = "javascript:void(0)";
+            applyBtn.onclick = async (e) => {
+                e.preventDefault();
+                if (applyBtn.classList.contains('disabled')) return;
+
+                const jobNumber = job['求人番号'] || job['求人ID'];
+
+                // 1. 「応募中...」を表示 (0.5～1秒待機)
+                showModal('応募しています...', false);
+                await new Promise(resolve => setTimeout(resolve, 800)); // 0.8秒待機
+
+                // 2. 「応募完了」メッセージに切り替え
+                showModal(
+                    '応募が完了しました！🎉\n\nLINEに正式な案内をお送りしますので、\nトーク画面に戻ってお待ちください。',
+                    // 閉じるボタンは自前で追加するのでfalse
+                    false
+                );
+
+                // 閉じるボタンを追加（安心感のため）
+                const btns = document.getElementById('modalButtons');
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'modal-btn primary';
+                closeBtn.textContent = '閉じる';
+                closeBtn.onclick = () => window.close(); // Try to close
+                btns.appendChild(closeBtn);
+
+                // Disable button
+                applyBtn.textContent = '応募済み';
+                applyBtn.classList.add('disabled');
+                applyBtn.style.backgroundColor = '#cccccc';
+                applyBtn.style.pointerEvents = 'none';
+
+                // 3. バックグラウンドでAPI送信
+                try {
+                    const res = await fetch(`${GAS_API_URL}?action=apply_job&uid=${uid}&jobId=${encodeURIComponent(jobNumber)}`);
+                    const json = await res.json();
+                    if (!json.success && json.status !== 'success') {
+                        console.error('Apply Failed:', json);
+                    } else {
+                        console.log('Apply Success');
+                    }
+                } catch (err) {
+                    console.error('Network Error:', err);
+                }
+            };
+
+            function showModal(text, hasCloseBtn = true) {
+                const modal = document.getElementById('customModal');
+                const msg = document.getElementById('modalText');
+                const btns = document.getElementById('modalButtons');
+
+                msg.textContent = text;
+                btns.innerHTML = '';
+
+                if (hasCloseBtn) {
+                    const btn = document.createElement('button');
+                    btn.className = 'modal-btn primary';
+                    btn.textContent = '閉じる';
+                    btn.onclick = () => modal.style.display = 'none';
+                    btns.appendChild(btn);
+                }
+
+                modal.style.display = 'flex';
+            }
+
+            document.getElementById('actionBar').style.display = 'flex';
+
+            // 🐛 Debug Info for User
+            const debugDiv = document.createElement('div');
+            debugDiv.style.padding = '20px';
+            debugDiv.style.color = '#ccc';
+            debugDiv.style.fontSize = '10px';
+            debugDiv.style.wordBreak = 'break-all';
+            debugDiv.innerHTML = `
+                <p>Debug Info:</p>
+                <ul>
+                    <li>UID: ${uid || 'Not Set'}</li>
+                    <li>Job ID: ${job['求人番号'] || job['求人ID']}</li>
+                    <li>Mode: Direct API Apply</li>
+                </ul>
+            `;
+            document.getElementById('content').appendChild(debugDiv);
+        }
+
+        function showError(msg) {
+            document.getElementById('content').innerHTML = `<div class="error-msg">${msg}</div>`;
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function closeTabOrBack() {
+            // UIDを取得（パラメータに存在する場合）
+            const params = new URLSearchParams(window.location.search);
+            const uid = params.get('uid') || '';
+
+            // 1. まずウィンドウを閉じることを試みる
+            // (LINEブラウザなどで開かれた新規ウィンドウの場合)
+            try {
+                window.close();
+            } catch (e) {
+                console.log('window.close failed', e);
+            }
+
+            // 2. 履歴があって、かつ同一ドメインからの遷移なら戻る
+            if (window.history.length > 1 && document.referrer && document.referrer.includes(location.hostname)) {
+                window.history.back();
+            } else {
+                // 3. それ以外（閉じられない、履歴がない）は一覧へ戻る
+                const target = uid ? `index.html?uid=${uid}` : 'index.html';
+                window.location.href = target;
+            }
+        }
+    </script>
+</body>
+
+</html>

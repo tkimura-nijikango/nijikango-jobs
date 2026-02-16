@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debugger</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        pre {
+            background: #333;
+            color: #0f0;
+            padding: 10px;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h2>🚀 API Connection Test</h2>
+        <p>GASのAPIエンドポイントへの接続テストを行います。</p>
+        <div style="margin-bottom:10px;">
+            <label>API URL:</label>
+            <input type="text" id="apiUrl"
+                value="https://script.google.com/macros/s/AKfycbyW2DFQ1EihC98tpz1tH0kvs-KUYc8byTizvPoedhosEp9lHP-Xyi9lywzuEfDk29qMlg/exec"
+                style="width:100%; padding:8px; margin-top:5px;">
+        </div>
+        <button onclick="runTest()">実行 (Run Test)</button>
+    </div>
+
+    <div class="card" id="resultArea" style="display:none;">
+        <h2>📊 Result</h2>
+        <p>Status: <span id="status">---</span></p>
+        <p>Time: <span id="time">---</span> ms</p>
+
+        <h3>Response Preview (Top 500 chars)</h3>
+        <pre id="preview">---</pre>
+
+        <h3>Full Log</h3>
+        <pre id="log">Waiting...</pre>
+    </div>
+
+    <script>
+        async function runTest() {
+            const url = document.getElementById('apiUrl').value;
+            const resultArea = document.getElementById('resultArea');
+            const statusEl = document.getElementById('status');
+            const timeEl = document.getElementById('time');
+            const previewEl = document.getElementById('preview');
+            const logEl = document.getElementById('log');
+
+            resultArea.style.display = 'block';
+            logEl.textContent = 'Fetching...';
+            statusEl.textContent = 'Loading...';
+            statusEl.className = '';
+
+            const startTime = performance.now();
+
+            try {
+                // キャッシュバスター追加
+                const targetUrl = `${url}?action=get_jobs&t=${Date.now()}`;
+                logEl.textContent += `\nRequesting: ${targetUrl}`;
+
+                const response = await fetch(targetUrl);
+                const endTime = performance.now();
+
+                timeEl.textContent = Math.round(endTime - startTime);
+                statusEl.textContent = `${response.status} ${response.statusText}`;
+
+                if (!response.ok) {
+                    statusEl.className = 'error';
+                    const text = await response.text();
+                    previewEl.textContent = text.substring(0, 500);
+                    logEl.textContent += `\nError Body: ${text}`;
+                    return;
+                }
+
+                statusEl.className = 'success';
+                const text = await response.text();
+                previewEl.textContent = text.substring(0, 500);
+
+                try {
+                    const json = JSON.parse(text);
+                    logEl.textContent += `\n✅ Valid JSON Parsed`;
+                    logEl.textContent += `\nItems count: ${Array.isArray(json) ? json.length : 'Not an array'}`;
+                    if (Array.isArray(json) && json.length > 0) {
+                        logEl.textContent += `\nFirst Item Keys: ${Object.keys(json[0]).join(', ')}`;
+                    }
+                } catch (e) {
+                    logEl.textContent += `\n❌ JSON Parse Error: ${e.message}`;
+                    statusEl.className = 'error';
+                    statusEl.textContent += ' (Invalid JSON)';
+                }
+
+            } catch (err) {
+                const endTime = performance.now();
+                timeEl.textContent = Math.round(endTime - startTime);
+                statusEl.textContent = 'Network Error / CORS Blocked';
+                statusEl.className = 'error';
+                logEl.textContent += `\n❌ Exception: ${err.message}`;
+                previewEl.textContent = err.stack;
+            }
+        }
+    </script>
+</body>
+
+</html>
