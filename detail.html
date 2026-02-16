@@ -83,6 +83,20 @@
     <script>
         const DATA_URL = './jobs.zip';
         const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwT4dlPuH3edMjF5aWRV_TgAzU0Rz7YS76Zb-H0Dv3G02ph0DR1KY006ldArCJZngFs/exec';
+        const WORKER_API_URL = 'https://nijikango-jobs-api.t-kimura-business.workers.dev';
+
+        function mapD1ToDisplay(j){return{
+            '求人番号':j.job_number||'','求人ID':j.job_id||'','求人タイトル':j.title||'','施設名':j.facility_name||'',
+            '年収':j.salary||'','月給':j.monthly_salary||'','時給':j.hourly_salary||'','給与備考':j.salary_note||'',
+            '各種手当':j.allowance||'','職種':j.job_type||'','雇用形態':j.employment_type||'','施設形態':j.facility_type||'',
+            '勤務形態':j.work_style||'','勤務時間':j.work_hours||'','休日':j.holiday||'','担当業務':j.duties||'',
+            '業務内容':j.description||'','経験・スキル':j.requirements||'','都道府県':j.prefecture||'','市区町村':j.city||'',
+            '勤務地':j.location||'','最寄駅（路線）':j.station||'','通勤交通費':j.commute||'','法人名':j.corporation||'',
+            '診療科目':j.medical_dept||'','福利厚生':j.benefits||'','タグ（特徴）':j.tags||'','特徴タグ':j.tags||'',
+            'POINT1':j.point1||'','POINT2':j.point2||'','POINT3':j.point3||'','取材NOTE':j.interview_note||'',
+            'おすすめ求人':j.recommend_flag?'true':'false','年収下限':j.min_salary||0,'年収上限':j.max_salary||0,
+            '職種大枠':j.category||'','職種詳細':j.detail||'','更新日':j.updated_at||''
+        };}
 
         const params = new URLSearchParams(window.location.search);
         const jobId = params.get('id');
@@ -107,7 +121,18 @@
                     if (job) console.log('Loaded from cache');
                 }
 
-                // Strategy 2: Fetch from jobs.zip
+                // Strategy 2: Worker API (fast D1)
+                if (!job) {
+                    try {
+                        const res = await fetch(`${WORKER_API_URL}/api/jobs/${encodeURIComponent(jobId)}`);
+                        if (res.ok) {
+                            const json = await res.json();
+                            if (json.job) { job = mapD1ToDisplay(json.job); console.log('Loaded from Worker API'); }
+                        }
+                    } catch (e) { console.warn('Worker API unavailable:', e.message); }
+                }
+
+                // Strategy 3: Fetch from jobs.zip (fallback)
                 if (!job) {
                     const res = await fetch(`${DATA_URL}?t=${Date.now()}`);
                     if (!res.ok) throw new Error('Failed to load');
