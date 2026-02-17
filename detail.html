@@ -86,12 +86,12 @@
         const WORKER_API_URL = 'https://nijikango-jobs-api.t-kimura-business.workers.dev';
 
         function mapD1ToDisplay(j){return{
-            '求人番号':j.job_number||'','求人ID':j.job_id||'','求人タイトル':j.title||'','施設名':j.facility_name||'',
+            '求人番号':j.job_number||'','求人ID':j.job_id||'','求人タイトル':j.title||'','施設名':'非公開',
             '年収':j.salary||'','月給':j.monthly_salary||'','時給':j.hourly_salary||'','給与備考':j.salary_note||'',
             '各種手当':j.allowance||'','職種':j.job_type||'','雇用形態':j.employment_type||'','施設形態':j.facility_type||'',
             '勤務形態':j.work_style||'','勤務時間':j.work_hours||'','休日':j.holiday||'','担当業務':j.duties||'',
             '業務内容':j.description||'','経験・スキル':j.requirements||'','都道府県':j.prefecture||'','市区町村':j.city||'',
-            '勤務地':j.location||'','最寄駅（路線）':j.station||'','通勤交通費':j.commute||'','法人名':j.corporation||'',
+            '勤務地':j.location||'','最寄駅（路線）':j.station||'','通勤交通費':j.commute||'','法人名':'非公開',
             '診療科目':j.medical_dept||'','福利厚生':j.benefits||'','タグ（特徴）':j.tags||'','特徴タグ':j.tags||'',
             'POINT1':j.point1||'','POINT2':j.point2||'','POINT3':j.point3||'','取材NOTE':j.interview_note||'',
             'おすすめ求人':j.recommend_flag?'true':'false','年収下限':j.min_salary||0,'年収上限':j.max_salary||0,
@@ -174,7 +174,7 @@
 
         function renderJob(job) {
             const title = job['求人タイトル'] || '求人詳細';
-            const facility = job['施設名'] || '非公開';
+            const facility = '非公開';
             const jobNumber = String(job['求人番号'] || job['求人ID'] || '');
 
             // Tags
