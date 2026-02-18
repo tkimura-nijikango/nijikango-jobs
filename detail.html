@@ -28,12 +28,13 @@
     <style>
         @keyframes bounce-loader { 0%,100%{transform:scale(0)} 50%{transform:scale(1)} }
         .animate-bounce-loader { animation: bounce-loader 1s infinite ease-in-out; }
+        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 
 <body class="bg-gray-50 font-sans pb-24">
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 flex flex-col justify-center items-center z-[9999]">
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/95 flex flex-col justify-center items-center z-[9999]">
         <div class="w-16 h-16 bg-primary rounded-full animate-bounce-loader relative">
             <span class="absolute top-4 left-3 w-3 h-3 bg-white rounded-full"></span>
             <span class="absolute top-4 right-3 w-3 h-3 bg-white rounded-full"></span>
@@ -50,32 +51,36 @@
     </div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-[1000] bg-white shadow-sm border-b border-gray-100 flex justify-between items-center px-4 h-14">
-        <a href="javascript:void(0)" onclick="closeTabOrBack()"
-            class="no-underline text-gray-800 font-bold flex items-center gap-1 text-sm">
-            <span>&#9664;</span> <span>戻る</span>
-        </a>
-        <div class="flex items-center gap-2">
-            <img src="logo.jpg" alt="ニジ看護" class="h-7 w-auto">
-            <span class="text-base font-bold text-primary">求人詳細</span>
+    <header class="sticky top-0 z-[1000] bg-white shadow-sm">
+        <div class="max-w-3xl mx-auto flex justify-between items-center px-4 h-14">
+            <a href="javascript:void(0)" onclick="closeTabOrBack()"
+                class="no-underline text-gray-600 font-medium flex items-center gap-1 text-sm hover:text-gray-800 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                <span>戻る</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <img src="logo.jpg" alt="ニジ看護" class="h-7 w-auto rounded">
+                <span class="text-base font-bold text-primary">求人詳細</span>
+            </div>
+            <div class="w-[50px]"></div>
         </div>
-        <div class="w-[50px]"></div>
     </header>
 
     <!-- Content -->
-    <div id="content" class="p-4 max-w-[800px] mx-auto"></div>
+    <div id="content" class="max-w-3xl mx-auto p-4"></div>
 
     <!-- Action Bar -->
-    <div class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] px-4 py-3 flex justify-center gap-3 z-[1000]"
-        id="actionBar" style="display:none;">
-        <button id="addCartBtn"
-            class="flex-1 max-w-[180px] bg-white text-primary border-2 border-primary font-bold py-3.5 rounded-lg text-base cursor-pointer flex items-center justify-center transition-all active:scale-[0.98]">
-            ＋ 気になる
-        </button>
-        <button id="applyBtn"
-            class="flex-1 max-w-[400px] bg-primary text-white font-bold border-none py-3.5 rounded-lg text-base cursor-pointer flex items-center justify-center shadow-[0_4px_6px_rgba(248,140,170,0.3)] transition-all active:scale-[0.98]">
-            この求人に応募する
-        </button>
+    <div class="fixed bottom-0 left-0 w-full bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-[1000]" id="actionBar" style="display:none;">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex gap-3">
+            <button id="addCartBtn"
+                class="flex-shrink-0 w-14 h-12 bg-white text-primary border-2 border-primary font-bold rounded-xl text-sm cursor-pointer flex items-center justify-center transition-all active:scale-[0.95]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </button>
+            <button id="applyBtn"
+                class="flex-1 bg-primary text-white font-bold border-none h-12 rounded-xl text-base cursor-pointer flex items-center justify-center shadow-[0_4px_12px_rgba(248,140,170,0.35)] transition-all active:scale-[0.98]">
+                この求人に応募する
+            </button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -106,22 +111,19 @@
         const cart = new Set(JSON.parse(localStorage.getItem('nijikango_cart') || '[]').map(String));
 
         window.addEventListener('DOMContentLoaded', async () => {
-            if (!jobId) {
-                showError('求人IDが指定されていません。');
-                return;
-            }
+            if (!jobId) { showError('求人IDが指定されていません。'); return; }
 
             try {
                 let job = null;
 
-                // Strategy 1: localStorage cache (instant)
+                // Strategy 1: localStorage cache
                 const cached = getCachedJobs();
                 if (cached) {
                     job = cached.find(j => String(j['求人番号'] || j['求人ID']) === String(jobId));
                     if (job) console.log('Loaded from cache');
                 }
 
-                // Strategy 2: Worker API (fast D1)
+                // Strategy 2: Worker API
                 if (!job) {
                     try {
                         const res = await fetch(`${WORKER_API_URL}/api/jobs/${encodeURIComponent(jobId)}`);
@@ -132,7 +134,7 @@
                     } catch (e) { console.warn('Worker API unavailable:', e.message); }
                 }
 
-                // Strategy 3: Fetch from jobs.zip (fallback)
+                // Strategy 3: jobs.zip fallback
                 if (!job) {
                     const res = await fetch(`${DATA_URL}?t=${Date.now()}`);
                     if (!res.ok) throw new Error('Failed to load');
@@ -146,19 +148,13 @@
                     if (job) console.log('Loaded from zip');
                 }
 
-                if (job) {
-                    currentJob = job;
-                    renderJob(job);
-                } else {
-                    showError('該当する求人が見つかりませんでした。');
-                }
+                if (job) { currentJob = job; renderJob(job); }
+                else { showError('該当する求人が見つかりませんでした。'); }
             } catch (e) {
                 console.error(e);
                 showError('データの読み込みに失敗しました。');
             } finally {
-                setTimeout(() => {
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                }, 400);
+                setTimeout(() => { document.getElementById('loadingOverlay').style.display = 'none'; }, 400);
             }
         });
 
@@ -177,105 +173,139 @@
             const facility = '非公開';
             const jobNumber = String(job['求人番号'] || job['求人ID'] || '');
 
-            // Tags
             const facilityType = job['施設形態'] || '';
             const empType = job['雇用形態'] || '';
+            const workStyle = job['勤務形態'] || '';
             const featuresRaw = job['タグ（特徴）'] || job['特徴タグ'] || '';
             const tags = featuresRaw.split(',').filter(Boolean);
-            if (facilityType) tags.unshift(facilityType);
 
-            const tagHtml = tags.map(t => {
-                if (t === facilityType) {
-                    return `<span class="text-xs px-2.5 py-1 rounded bg-primary-light text-primary font-medium">${t}</span>`;
-                }
-                return `<span class="text-xs px-2.5 py-1 rounded bg-gray-100 text-gray-600">${t}</span>`;
-            }).join('');
+            // Build badges
+            const badges = [];
+            if (facilityType) badges.push(`<span class="text-xs px-2.5 py-1 rounded-full bg-primary-light text-primary font-medium">${esc(facilityType)}</span>`);
+            if (empType) badges.push(`<span class="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 font-medium">${esc(empType)}</span>`);
+            if (workStyle) badges.push(`<span class="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">${esc(workStyle)}</span>`);
+            const featureTags = tags.map(t => `<span class="text-xs px-2 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100">${esc(t)}</span>`).join('');
 
             // Points
-            const p1 = job['POINT1'] || '';
-            const p2 = job['POINT2'] || '';
-            const p3 = job['POINT3'] || '';
-            const points = [p1, p2, p3].filter(Boolean);
+            const points = [job['POINT1'], job['POINT2'], job['POINT3']].filter(Boolean);
             const pointsHtml = points.length > 0 ? `
-                <div class="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100 mb-4">
+                <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100 mb-3">
                     <div class="flex items-center gap-2 mb-3">
-                        <span class="text-base">✨</span>
+                        <span class="w-1 h-5 bg-primary rounded-full inline-block"></span>
                         <h2 class="text-sm font-bold text-primary">おすすめポイント</h2>
                     </div>
-                    <ul class="space-y-2">
-                        ${points.map(p => `<li class="flex items-start gap-2 text-sm text-gray-700"><span class="text-primary mt-0.5">●</span><span>${escapeHtml(p)}</span></li>`).join('')}
+                    <ul class="space-y-2.5">
+                        ${points.map((p, i) => `<li class="flex items-start gap-2.5 text-sm text-gray-700"><span class="flex-shrink-0 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">${i + 1}</span><span class="leading-relaxed">${esc(p)}</span></li>`).join('')}
                     </ul>
                 </div>` : '';
 
             // Interview note
             const note = job['取材NOTE'] || '';
             const noteHtml = note ? `
-                <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-100 mb-4">
+                <div class="bg-amber-50 rounded-xl p-4 border border-amber-100 mb-3">
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="text-base">📝</span>
-                        <h2 class="text-sm font-bold text-yellow-700">取材メモ</h2>
+                        <span class="w-1 h-5 bg-amber-400 rounded-full inline-block"></span>
+                        <h2 class="text-sm font-bold text-amber-700">取材メモ</h2>
                     </div>
-                    <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${escapeHtml(note)}</p>
+                    <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${esc(note)}</p>
                 </div>` : '';
 
-            // Detail table fields
-            const fields = [
-                { label: '施設形態', value: facilityType },
-                { label: '職種', value: job['職種'] || '' },
-                { label: '雇用形態', value: empType },
-                { label: '勤務形態', value: job['勤務形態'] || '' },
-                { label: '勤務地', value: buildLocation(job) },
-                { label: '最寄駅', value: job['最寄駅（路線）'] || '' },
+            // Detail table - grouped sections
+            const salaryFields = [
                 { label: '年収', value: job['年収'] || '', highlight: true },
                 { label: '月給', value: job['月給'] || '' },
                 { label: '時給', value: job['時給'] || '' },
                 { label: '給与備考', value: job['給与備考'] || '' },
                 { label: '各種手当', value: job['各種手当'] || '' },
+            ].filter(f => f.value && String(f.value).trim() && f.value !== '-');
+
+            const workFields = [
+                { label: '施設形態', value: facilityType },
+                { label: '職種', value: job['職種'] || '' },
+                { label: '雇用形態', value: empType },
+                { label: '勤務形態', value: workStyle },
                 { label: '業務内容', value: job['業務内容'] || job['担当業務'] || '' },
                 { label: '経験・スキル', value: job['経験・スキル'] || '' },
                 { label: '勤務時間', value: job['勤務時間'] || '' },
                 { label: '休日', value: job['休日'] || '' },
-                { label: '福利厚生', value: job['福利厚生'] || '' },
-                { label: '通勤交通費', value: job['通勤交通費'] || '' },
                 { label: '診療科目', value: job['診療科目'] || '' },
             ].filter(f => f.value && String(f.value).trim() && f.value !== '-');
 
-            const tableHtml = fields.map(f => `
-                <tr>
-                    <th class="text-left py-3 px-2 border-b border-gray-100 align-top w-[28%] text-gray-500 font-normal text-sm">${f.label}</th>
-                    <td class="text-left py-3 px-2 border-b border-gray-100 align-top leading-relaxed whitespace-pre-wrap text-sm ${f.highlight ? 'text-primary font-bold' : 'text-gray-800'}">${escapeHtml(String(f.value))}</td>
-                </tr>`).join('');
+            const locationFields = [
+                { label: '勤務地', value: buildLocation(job) },
+                { label: '最寄駅', value: job['最寄駅（路線）'] || '' },
+                { label: '通勤交通費', value: job['通勤交通費'] || '' },
+            ].filter(f => f.value && String(f.value).trim() && f.value !== '-');
+
+            const otherFields = [
+                { label: '福利厚生', value: job['福利厚生'] || '' },
+            ].filter(f => f.value && String(f.value).trim() && f.value !== '-');
+
+            function buildTable(fields) {
+                return fields.map(f => `
+                    <tr>
+                        <th class="text-left py-3 px-0 border-b border-gray-100 align-top w-[25%] text-gray-500 font-medium text-xs">${f.label}</th>
+                        <td class="text-left py-3 pl-3 border-b border-gray-100 align-top leading-relaxed whitespace-pre-wrap text-sm ${f.highlight ? 'text-primary font-bold' : 'text-gray-800'}">${esc(String(f.value))}</td>
+                    </tr>`).join('');
+            }
+
+            function buildSection(icon, title, fields) {
+                if (!fields.length) return '';
+                return `
+                <div class="bg-white rounded-xl shadow-sm mb-3 overflow-hidden">
+                    <div class="px-4 pt-4 pb-2 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>
+                        <h2 class="text-sm font-bold text-gray-700">${icon} ${title}</h2>
+                    </div>
+                    <div class="px-4 pb-4">
+                        <table class="w-full border-collapse">${buildTable(fields)}</table>
+                    </div>
+                </div>`;
+            }
 
             const html = `
-                <div class="bg-white rounded-xl p-5 shadow-sm mb-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-gray-400 text-xs">No.${jobNumber}</span>
-                        ${empType ? `<span class="text-xs text-gray-500 border border-gray-200 rounded px-1.5 py-0.5">${empType}</span>` : ''}
+                <!-- Main Info Card -->
+                <div class="bg-white rounded-xl shadow-sm p-4 mb-3">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-gray-400 text-xs font-medium">No.${esc(jobNumber)}</span>
+                        ${job['更新日'] ? `<span class="text-xs text-gray-400">${esc(job['更新日'])}</span>` : ''}
                     </div>
-                    <div class="text-sm font-bold text-gray-700 mb-1">${escapeHtml(facility)}</div>
-                    <h1 class="text-xl font-bold text-primary leading-snug mb-4">${escapeHtml(title)}</h1>
-                    <div class="flex flex-wrap gap-2 mb-4">${tagHtml}</div>
+                    <div class="flex flex-wrap gap-1.5 mb-3">${badges.join('')}</div>
+                    <h1 class="text-lg font-bold text-gray-800 leading-snug mb-4">${esc(title)}</h1>
 
-                    <!-- Salary highlight -->
+                    <!-- Salary Highlight -->
                     ${job['年収'] ? `
-                    <div class="bg-primary-light rounded-lg p-3 mb-4 flex items-center gap-2">
-                        <span class="text-lg">💰</span>
-                        <span class="text-primary font-bold text-lg">${escapeHtml(job['年収'])}</span>
+                    <div class="bg-primary-light rounded-xl p-3.5 mb-4 flex items-center gap-3">
+                        <span class="text-xl">💰</span>
+                        <div>
+                            <div class="text-xs text-gray-500 font-medium mb-0.5">年収</div>
+                            <div class="text-primary font-bold text-lg">${esc(job['年収'])}</div>
+                        </div>
                     </div>` : ''}
+
+                    <!-- Location Summary -->
+                    ${buildLocation(job) ? `
+                    <div class="flex items-start gap-2 text-sm text-gray-600 mb-2">
+                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span>${esc(buildLocation(job))}</span>
+                    </div>` : ''}
+                    ${job['最寄駅（路線）'] ? `
+                    <div class="flex items-start gap-2 text-sm text-gray-500 mb-3">
+                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        <span>${esc(job['最寄駅（路線）'])}</span>
+                    </div>` : ''}
+
+                    <!-- Feature Tags -->
+                    ${featureTags ? `<div class="flex flex-wrap gap-1.5">${featureTags}</div>` : ''}
                 </div>
 
                 ${pointsHtml}
                 ${noteHtml}
 
-                <div class="bg-white rounded-xl p-5 shadow-sm mb-4">
-                    <h2 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>
-                        求人詳細
-                    </h2>
-                    <table class="w-full border-collapse text-sm">
-                        ${tableHtml}
-                    </table>
-                </div>
+                ${buildSection('💰', '給与・待遇', salaryFields)}
+                ${buildSection('🏥', '仕事内容', workFields)}
+                ${buildSection('📍', 'アクセス', locationFields)}
+                ${buildSection('🎁', '福利厚生', otherFields)}
 
                 <div style="height:20px;"></div>
             `;
@@ -285,13 +315,9 @@
             // Cart button
             const cartBtn = document.getElementById('addCartBtn');
             updateCartBtn(cartBtn, jobNumber);
-
             cartBtn.onclick = () => {
-                if (cart.has(jobNumber)) {
-                    cart.delete(jobNumber);
-                } else {
-                    cart.add(jobNumber);
-                }
+                if (cart.has(jobNumber)) { cart.delete(jobNumber); }
+                else { cart.add(jobNumber); }
                 localStorage.setItem('nijikango_cart', JSON.stringify(Array.from(cart)));
                 updateCartBtn(cartBtn, jobNumber);
             };
@@ -304,7 +330,6 @@
 
                 showModal('応募処理中です...');
                 await new Promise(r => setTimeout(r, 600));
-
                 showModal('応募が完了しました！\n\nLINEに正式な案内をお送りするので、\nトーク画面に戻ってお待ちください', true);
 
                 applyBtn.textContent = '応募済み';
@@ -313,12 +338,10 @@
                 applyBtn.style.pointerEvents = 'none';
                 applyBtn.style.boxShadow = 'none';
 
-                // Send apply to GAS
                 if (uid) {
                     try {
                         fetch(GAS_API_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
+                            method: 'POST', mode: 'no-cors',
                             headers: { 'Content-Type': 'text/plain' },
                             body: JSON.stringify({ action: 'apply', userId: uid, jobId: jobNumber })
                         }).catch(err => console.error('Apply error:', err));
@@ -326,35 +349,29 @@
                 }
             };
 
-            document.getElementById('actionBar').style.display = 'flex';
+            document.getElementById('actionBar').style.display = 'block';
             document.title = `${title} - ニジ看護`;
         }
 
         function buildLocation(job) {
-            const parts = [
-                job['都道府県'] || '',
-                job['市区町村'] || '',
-                job['勤務地'] || ''
-            ].filter(Boolean);
-            // Deduplicate if 勤務地 already contains prefecture/city
+            const parts = [job['都道府県'] || '', job['市区町村'] || '', job['勤務地'] || ''].filter(Boolean);
             if (parts.length > 1) {
                 const loc = parts[parts.length - 1];
-                return parts.filter((p, i) => i === parts.length - 1 || !loc.includes(p)).concat(
-                    loc.includes(parts[0]) ? [] : []
-                ).join(' ') || loc;
+                return parts.filter((p, i) => i === parts.length - 1 || !loc.includes(p)).join(' ') || loc;
             }
             return parts.join(' ') || '';
         }
 
         function updateCartBtn(btn, jobNumber) {
+            const heartSvg = btn.querySelector('svg');
             if (cart.has(jobNumber)) {
-                btn.textContent = '✔ 選択済み';
-                btn.classList.remove('bg-white');
-                btn.classList.add('bg-primary-light');
+                btn.classList.remove('bg-white', 'border-primary', 'text-primary');
+                btn.classList.add('bg-primary-light', 'border-primary', 'text-primary');
+                if (heartSvg) heartSvg.setAttribute('fill', 'currentColor');
             } else {
-                btn.textContent = '＋ 気になる';
                 btn.classList.remove('bg-primary-light');
-                btn.classList.add('bg-white');
+                btn.classList.add('bg-white', 'border-primary', 'text-primary');
+                if (heartSvg) heartSvg.setAttribute('fill', 'none');
             }
         }
 
@@ -362,44 +379,34 @@
             const modal = document.getElementById('customModal');
             const msg = document.getElementById('modalText');
             const btns = document.getElementById('modalButtons');
-
             msg.textContent = text;
             btns.innerHTML = '';
-
             if (hasCloseBtn) {
                 const btn = document.createElement('button');
-                btn.className = 'bg-primary text-white border-none py-3 px-6 rounded-full text-base font-bold cursor-pointer transition-opacity active:opacity-80 min-w-[120px]';
+                btn.className = 'bg-primary text-white border-none py-3 px-6 rounded-xl text-base font-bold cursor-pointer transition-opacity active:opacity-80 min-w-[120px]';
                 btn.textContent = '閉じる';
-                btn.onclick = () => {
-                    modal.style.display = 'none';
-                    modal.classList.add('hidden');
-                    closeTabOrBack();
-                };
+                btn.onclick = () => { modal.style.display = 'none'; modal.classList.add('hidden'); closeTabOrBack(); };
                 btns.appendChild(btn);
             }
-
             modal.classList.remove('hidden');
             modal.style.display = 'flex';
         }
 
         function showError(msg) {
-            document.getElementById('content').innerHTML = `<div class="text-center py-10 text-red-500 bg-white rounded-xl mt-4">${msg}</div>`;
+            document.getElementById('content').innerHTML = `<div class="text-center py-16 text-gray-400 bg-white rounded-xl mt-4"><p>${msg}</p><a href="index.html${uid ? '?uid=' + encodeURIComponent(uid) : ''}" class="inline-block mt-3 text-primary text-sm font-medium hover:underline">← 求人一覧に戻る</a></div>`;
             document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        function escapeHtml(str) {
+        function esc(str) {
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML.replace(/\n/g, '<br>');
         }
 
         function closeTabOrBack() {
-            // If there's history from same domain, go back
             if (window.history.length > 1 && document.referrer && document.referrer.includes(location.hostname)) {
-                window.history.back();
-                return;
+                window.history.back(); return;
             }
-            // Otherwise redirect to list page
             let target = 'index.html';
             if (uid) target += `?uid=${encodeURIComponent(uid)}`;
             window.location.href = target;

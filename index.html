@@ -17,6 +17,7 @@
                         'primary-hover': '#e07b99',
                         'primary-light': '#fff0f4',
                         'primary-dark': '#d16a88',
+                        accent: '#f88caa',
                     },
                     fontFamily: {
                         sans: ['"Noto Sans JP"', 'Hiragino Sans', 'sans-serif'],
@@ -28,22 +29,29 @@
     <style>
         @keyframes bounce-loader { 0%,100%{transform:scale(0)} 50%{transform:scale(1)} }
         .animate-bounce-loader { animation: bounce-loader 1s infinite ease-in-out; }
-        @keyframes fade-in-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        .animate-fade-in-up { animation: fade-in-up 0.3s ease forwards; }
+        @keyframes fade-in-up { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .animate-fade-in-up { animation: fade-in-up 0.25s ease forwards; }
         @keyframes slide-up { from{transform:translateX(-50%) translateY(100px)} to{transform:translateX(-50%) translateY(0)} }
         .cart-bar-enter { animation: slide-up 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
         @keyframes heart-pop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
         .heart-pop { animation: heart-pop 0.3s ease; }
-        .chip-active { background-color:#f88caa!important; color:white!important; border-color:#f88caa!important; }
         .hide-scrollbar::-webkit-scrollbar { display:none; }
         .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
+        .filter-section { max-height:0; overflow:hidden; transition:max-height 0.3s ease; }
+        .filter-section.open { max-height:600px; }
+        .chip { transition: all 0.15s ease; }
+        .chip-active { background-color:#f88caa!important; color:white!important; border-color:#f88caa!important; }
+        .filter-btn.active { background-color:#fff0f4; color:#f88caa; border-color:#f88caa; }
+        .filter-btn.active .filter-count { display:inline-flex; }
+        .filter-count { display:none; }
+        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
 
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 flex flex-col items-center justify-center z-[9999]">
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/95 flex flex-col items-center justify-center z-[9999]">
         <div class="w-16 h-16 bg-primary rounded-full animate-bounce-loader relative">
             <span class="absolute top-4 left-3 w-3 h-3 bg-white rounded-full"></span>
             <span class="absolute top-4 right-3 w-3 h-3 bg-white rounded-full"></span>
@@ -52,140 +60,211 @@
     </div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
-        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <header class="sticky top-0 z-50 bg-white shadow-sm">
+        <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="logo.jpg" alt="ニジ看護" class="h-8 w-auto">
-                <span class="text-xl font-bold text-primary tracking-tight">ニジ看護 求人</span>
+                <img src="logo.jpg" alt="ニジ看護" class="h-8 w-auto rounded">
+                <span class="text-lg font-bold text-primary tracking-tight">ニジ看護</span>
             </div>
+            <span class="text-xs text-gray-400 font-medium">看護師求人検索</span>
         </div>
     </header>
 
     <!-- Search Bar -->
-    <div class="bg-primary">
-        <div class="max-w-6xl mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row gap-2">
-                <div class="flex-1">
+    <div class="bg-gradient-to-b from-primary to-pink-400">
+        <div class="max-w-3xl mx-auto px-4 py-5">
+            <p class="text-white text-sm font-medium mb-3 opacity-90">キーワードで求人を検索</p>
+            <div class="flex gap-2">
+                <div class="flex-1 relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" id="keywordInput"
-                        class="w-full h-12 px-4 rounded-lg border-2 border-transparent focus:border-pink-300 focus:outline-none text-base placeholder-gray-400"
-                        placeholder="キーワード、職種名など">
-                </div>
-                <div class="flex-1 md:max-w-xs">
-                    <select id="regionInput"
-                        class="w-full h-12 px-4 rounded-lg border-2 border-transparent focus:border-pink-300 focus:outline-none text-base bg-white text-gray-700 appearance-none"
-                        style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%23666%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;">
-                        <option value="">すべてのエリア</option>
-                        <option value="関東">関東</option>
-                        <option value="関西">関西</option>
-                        <option value="東海">東海</option>
-                        <option value="九州">九州・沖縄</option>
-                        <option value="北海道・東北">北海道・東北</option>
-                        <option value="甲信越・北陸">甲信越・北陸</option>
-                        <option value="中国・四国">中国・四国</option>
-                    </select>
+                        class="w-full h-12 pl-10 pr-4 rounded-lg border-0 focus:ring-2 focus:ring-pink-300 focus:outline-none text-sm placeholder-gray-400"
+                        placeholder="職種、施設名、キーワードなど">
                 </div>
                 <button id="searchBtn"
-                    class="h-12 px-8 bg-white hover:bg-gray-50 text-primary font-bold rounded-lg transition-colors text-base flex-shrink-0">
+                    class="h-12 px-5 bg-white hover:bg-gray-50 text-primary font-bold rounded-lg transition-colors text-sm flex-shrink-0 shadow-sm active:scale-95">
                     検索
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="bg-white border-b border-gray-200">
-        <div class="max-w-6xl mx-auto px-4 py-3">
-            <div class="flex flex-wrap items-center gap-2">
-                <select id="salaryInput"
-                    class="text-sm border border-gray-200 rounded-full px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-8"
-                    style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
-                    <option value="0">年収こだわらない</option>
-                    <option value="300">300万円以上</option>
-                    <option value="400">400万円以上</option>
-                    <option value="500">500万円以上</option>
-                    <option value="600">600万円以上</option>
-                </select>
-                <select id="categoryInput"
-                    class="text-sm border border-gray-200 rounded-full px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-8"
-                    style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
-                    <option value="">すべての施設</option>
-                    <option value="病院">病院</option>
-                    <option value="クリニック">クリニック</option>
-                    <option value="訪問看護">訪問看護</option>
-                    <option value="介護施設">介護施設</option>
-                    <option value="美容クリニック">美容クリニック</option>
-                    <option value="健診センター">健診センター</option>
-                    <option value="保育園・学校">保育園・学校</option>
-                </select>
-                <button id="filterToggleBtn" class="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                    <span id="filterToggleText">詳細フィルター</span>
+    <!-- Filter Section -->
+    <div class="bg-white border-b border-gray-100 shadow-sm">
+        <div class="max-w-3xl mx-auto">
+            <!-- Filter Category Buttons -->
+            <div class="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
+                <button class="filter-btn flex-shrink-0 text-sm border border-gray-200 rounded-full px-4 py-2 font-medium text-gray-600 bg-white flex items-center gap-1.5 active:scale-95 transition-all" data-target="areaFilter">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    エリア
+                    <span class="filter-count bg-primary text-white text-xs w-5 h-5 rounded-full items-center justify-center font-bold" id="areaCount">0</span>
+                </button>
+                <button class="filter-btn flex-shrink-0 text-sm border border-gray-200 rounded-full px-4 py-2 font-medium text-gray-600 bg-white flex items-center gap-1.5 active:scale-95 transition-all" data-target="facilityFilter">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    施設形態
+                    <span class="filter-count bg-primary text-white text-xs w-5 h-5 rounded-full items-center justify-center font-bold" id="facilityCount">0</span>
+                </button>
+                <button class="filter-btn flex-shrink-0 text-sm border border-gray-200 rounded-full px-4 py-2 font-medium text-gray-600 bg-white flex items-center gap-1.5 active:scale-95 transition-all" data-target="employmentFilter">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    雇用形態
+                    <span class="filter-count bg-primary text-white text-xs w-5 h-5 rounded-full items-center justify-center font-bold" id="employmentCount">0</span>
+                </button>
+                <button class="filter-btn flex-shrink-0 text-sm border border-gray-200 rounded-full px-4 py-2 font-medium text-gray-600 bg-white flex items-center gap-1.5 active:scale-95 transition-all" data-target="salaryFilter">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    年収
+                    <span class="filter-count bg-primary text-white text-xs w-5 h-5 rounded-full items-center justify-center font-bold" id="salaryCount">0</span>
+                </button>
+                <button class="filter-btn flex-shrink-0 text-sm border border-gray-200 rounded-full px-4 py-2 font-medium text-gray-600 bg-white flex items-center gap-1.5 active:scale-95 transition-all" data-target="featureFilter">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    こだわり
+                    <span class="filter-count bg-primary text-white text-xs w-5 h-5 rounded-full items-center justify-center font-bold" id="featureCount">0</span>
                 </button>
             </div>
-            <div id="detailFilters" class="hidden mt-3 pt-3 border-t border-gray-100">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="text-xs text-gray-500 font-medium mb-1 block">都道府県</label>
-                        <select id="prefSelect" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" disabled>
-                            <option value="">先にエリアを選択</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500 font-medium mb-1 block">雇用形態</label>
-                        <select id="employmentInput" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
-                            <option value="">すべて</option>
-                            <option value="常勤">常勤</option>
-                            <option value="非常勤">非常勤・パート</option>
-                            <option value="派遣">派遣</option>
-                        </select>
+
+            <!-- Area Filter Panel -->
+            <div id="areaFilter" class="filter-section border-t border-gray-100">
+                <div class="px-4 py-4">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>エリアで探す
+                    </h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500 font-medium mb-1.5 block">地方</label>
+                            <select id="regionInput" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%23999%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;">
+                                <option value="">すべてのエリア</option>
+                                <option value="関東">関東</option>
+                                <option value="関西">関西</option>
+                                <option value="東海">東海</option>
+                                <option value="北海道・東北">北海道・東北</option>
+                                <option value="甲信越・北陸">甲信越・北陸</option>
+                                <option value="中国・四国">中国・四国</option>
+                                <option value="九州">九州・沖縄</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 font-medium mb-1.5 block">都道府県</label>
+                            <select id="prefSelect" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%23999%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;" disabled>
+                                <option value="">先にエリアを選択</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label class="text-xs text-gray-500 font-medium mb-2 block">こだわり条件</label>
-                    <div class="flex flex-wrap gap-2" id="featureChips">
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="日勤のみ" class="hidden"> 日勤のみ</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="夜勤専従" class="hidden"> 夜勤専従</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="土日休み" class="hidden"> 土日休み</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="残業少なめ" class="hidden"> 残業少なめ</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="未経験可" class="hidden"> 未経験可</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="ブランク可" class="hidden"> ブランク可</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="寮" class="hidden"> 寮・借上</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="託児所" class="hidden"> 託児所あり</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="車通勤" class="hidden"> 車通勤可</label>
-                        <label class="inline-flex items-center text-xs border border-gray-200 rounded-full px-3 py-1.5 cursor-pointer transition-all hover:border-primary hover:text-primary select-none"><input type="checkbox" name="feature" value="駅近" class="hidden"> 駅近</label>
+            </div>
+
+            <!-- Facility Type Filter Panel -->
+            <div id="facilityFilter" class="filter-section border-t border-gray-100">
+                <div class="px-4 py-4">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>施設形態
+                    </h3>
+                    <div class="flex flex-wrap gap-2" id="facilityChips">
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="病院" class="hidden"> 病院</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="クリニック" class="hidden"> クリニック</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="訪問看護" class="hidden"> 訪問看護</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="介護施設" class="hidden"> 介護施設</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="美容クリニック" class="hidden"> 美容クリニック</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="健診センター" class="hidden"> 健診センター</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="facility" value="保育園" class="hidden"> 保育園・学校</label>
                     </div>
+                </div>
+            </div>
+
+            <!-- Employment Type Filter Panel -->
+            <div id="employmentFilter" class="filter-section border-t border-gray-100">
+                <div class="px-4 py-4">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>雇用形態
+                    </h3>
+                    <div class="flex flex-wrap gap-2" id="employmentChips">
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="employment" value="常勤" class="hidden"> 常勤（正社員）</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="employment" value="非常勤" class="hidden"> 非常勤・パート</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="employment" value="派遣" class="hidden"> 派遣</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="employment" value="夜勤専従" class="hidden"> 夜勤専従</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Filter Panel -->
+            <div id="salaryFilter" class="filter-section border-t border-gray-100">
+                <div class="px-4 py-4">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>希望年収
+                    </h3>
+                    <select id="salaryInput" class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%23999%27 d=%27M6 8L1 3h10z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;">
+                        <option value="0">こだわらない</option>
+                        <option value="300">300万円以上</option>
+                        <option value="400">400万円以上</option>
+                        <option value="500">500万円以上</option>
+                        <option value="600">600万円以上</option>
+                        <option value="700">700万円以上</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Feature Filter Panel -->
+            <div id="featureFilter" class="filter-section border-t border-gray-100">
+                <div class="px-4 py-4">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <span class="w-1 h-4 bg-primary rounded-full inline-block"></span>こだわり条件
+                    </h3>
+                    <div class="flex flex-wrap gap-2" id="featureChips">
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="日勤のみ" class="hidden"> 日勤のみ</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="夜勤専従" class="hidden"> 夜勤専従</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="土日休み" class="hidden"> 土日休み</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="残業少なめ" class="hidden"> 残業少なめ</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="未経験可" class="hidden"> 未経験可</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="ブランク可" class="hidden"> ブランク可</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="寮" class="hidden"> 寮・借上</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="託児所" class="hidden"> 託児所あり</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="車通勤" class="hidden"> 車通勤可</label>
+                        <label class="chip inline-flex items-center text-sm border border-gray-200 rounded-full px-3.5 py-2 cursor-pointer hover:border-primary select-none"><input type="checkbox" name="feature" value="駅近" class="hidden"> 駅近</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filters Display -->
+            <div id="activeFiltersBar" class="hidden px-4 py-2 border-t border-gray-100 bg-gray-50">
+                <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+                    <span class="text-xs text-gray-500 flex-shrink-0">絞り込み:</span>
+                    <div id="activeFilterTags" class="flex gap-1.5"></div>
+                    <button id="clearFiltersBtn" class="flex-shrink-0 text-xs text-red-400 font-medium hover:text-red-500 ml-1">クリア</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <main class="max-w-6xl mx-auto px-4 py-4 pb-28">
+    <main class="max-w-3xl mx-auto px-4 py-4 pb-28">
+        <!-- Result Header -->
         <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-bold text-primary" id="resultCount"></p>
-            <select id="sortSelect" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-8" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
+            <p class="text-sm font-bold text-gray-700" id="resultCount"></p>
+            <select id="sortSelect" class="text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 appearance-none pr-7 font-medium text-gray-600" style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath fill=%27%23999%27 d=%27M5 7L1 3h8z%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
                 <option value="newest">新着順</option>
                 <option value="salary_desc">年収が高い順</option>
                 <option value="salary_asc">年収が低い順</option>
             </select>
         </div>
-        <div id="topicsSection" class="hidden mb-4">
+
+        <!-- Topics Section -->
+        <div id="topicsSection" class="hidden mb-5">
             <div class="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100">
-                <div class="flex items-center gap-2 mb-3"><span class="text-lg">🔥</span><h2 class="text-sm font-bold text-primary">今週のおすすめ求人</h2></div>
+                <div class="flex items-center gap-2 mb-3"><span class="text-base">🔥</span><h2 class="text-sm font-bold text-primary">おすすめ求人</h2></div>
                 <div id="topicsContainer" class="flex gap-3 overflow-x-auto hide-scrollbar pb-1"></div>
             </div>
         </div>
-        <div id="jobsContainer" class="flex flex-col gap-4"></div>
+
+        <!-- Jobs Container -->
+        <div id="jobsContainer" class="flex flex-col gap-3"></div>
     </main>
 
     <!-- Favorites Floating Bar -->
-    <div id="cartBar" class="fixed bottom-5 left-1/2 -translate-x-1/2 translate-y-[100px] w-[90%] max-w-md bg-primary text-white px-5 py-4 rounded-full shadow-lg flex justify-between items-center z-[2000]" style="transform:translateX(-50%) translateY(100px);">
-        <div class="font-bold text-base flex items-center gap-2">
+    <div id="cartBar" class="fixed bottom-5 left-1/2 w-[92%] max-w-md bg-primary text-white px-5 py-3.5 rounded-2xl shadow-lg flex justify-between items-center z-[2000]" style="transform:translateX(-50%) translateY(100px);">
+        <div class="font-bold text-sm flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span>気になる求人</span>
             <span id="cartCount" class="bg-white text-primary px-2 py-0.5 rounded-full text-xs font-bold">0</span>
         </div>
-        <button id="applyBtn" class="bg-white text-primary font-bold px-6 py-2.5 rounded-full shadow hover:bg-gray-50 active:scale-95 transition-all text-sm">まとめて応募</button>
+        <button id="applyBtn" class="bg-white text-primary font-bold px-5 py-2 rounded-full shadow hover:bg-gray-50 active:scale-95 transition-all text-sm">まとめて応募</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -197,6 +276,8 @@
         const ITEMS_PER_PAGE = 20;
         const urlParams = new URLSearchParams(window.location.search);
         window.LINE_UID = urlParams.get('uid') || '';
+
+        // Region → Prefecture mapping (with and without suffix for robust matching)
         const REGION_PREF = {
             '関東':['東京都','神奈川県','埼玉県','千葉県','茨城県','栃木県','群馬県'],
             '関西':['大阪府','兵庫県','京都府','奈良県','滋賀県','和歌山県'],
@@ -206,11 +287,126 @@
             '甲信越・北陸':['新潟県','富山県','石川県','福井県','山梨県','長野県'],
             '中国・四国':['鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県']
         };
+        // Short names for fallback matching
+        const REGION_PREF_SHORT = {};
+        Object.keys(REGION_PREF).forEach(r => {
+            REGION_PREF_SHORT[r] = REGION_PREF[r].map(p => p.replace(/[都府県]$/, ''));
+        });
+
         function truncate(s,n){return s&&s.length>n?s.substring(0,n)+'...':s||'';}
+        function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-        window.addEventListener('DOMContentLoaded',()=>{setupCart();setupFilters();setupInteractions();setupFeatureChips();fetchJobs();});
+        window.addEventListener('DOMContentLoaded',()=>{
+            setupCart();setupFilterPanels();setupFilters();setupChips();setupInteractions();fetchJobs();
+        });
 
-        // Cart
+        // ========== Filter Panel Toggle ==========
+        function setupFilterPanels(){
+            document.querySelectorAll('.filter-btn').forEach(btn=>{
+                btn.addEventListener('click',()=>{
+                    const targetId=btn.dataset.target;
+                    const panel=document.getElementById(targetId);
+                    const isOpen=panel.classList.contains('open');
+                    // Close all panels
+                    document.querySelectorAll('.filter-section').forEach(p=>p.classList.remove('open'));
+                    document.querySelectorAll('.filter-btn').forEach(b=>{ if(!b.classList.contains('active-filter')) b.style.borderColor=''; });
+                    // Toggle this panel
+                    if(!isOpen){ panel.classList.add('open'); btn.style.borderColor='#f88caa'; }
+                });
+            });
+        }
+
+        // ========== Chip Toggle ==========
+        function setupChips(){
+            document.querySelectorAll('.chip').forEach(label=>{
+                label.addEventListener('click',()=>{
+                    const cb=label.querySelector('input[type="checkbox"]');
+                    setTimeout(()=>{
+                        cb.checked?label.classList.add('chip-active'):label.classList.remove('chip-active');
+                        updateFilterCounts();
+                        updateActiveFilters();
+                    },0);
+                });
+            });
+        }
+
+        // ========== Filter Counts ==========
+        function updateFilterCounts(){
+            const region=document.getElementById('regionInput').value;
+            const pref=document.getElementById('prefSelect').value;
+            const areaC=(region?1:0)+(pref?1:0);
+            const facilityC=document.querySelectorAll('input[name="facility"]:checked').length;
+            const employmentC=document.querySelectorAll('input[name="employment"]:checked').length;
+            const salaryC=parseInt(document.getElementById('salaryInput').value)>0?1:0;
+            const featureC=document.querySelectorAll('input[name="feature"]:checked').length;
+
+            updateCountBadge('areaCount',areaC,'areaFilter');
+            updateCountBadge('facilityCount',facilityC,'facilityFilter');
+            updateCountBadge('employmentCount',employmentC,'employmentFilter');
+            updateCountBadge('salaryCount',salaryC,'salaryFilter');
+            updateCountBadge('featureCount',featureC,'featureFilter');
+        }
+        function updateCountBadge(id,count,target){
+            const el=document.getElementById(id);
+            const btn=document.querySelector(`[data-target="${target}"]`);
+            if(count>0){el.textContent=count;el.style.display='inline-flex';btn.classList.add('active');}
+            else{el.style.display='none';btn.classList.remove('active');}
+        }
+
+        // ========== Active Filters Bar ==========
+        function updateActiveFilters(){
+            const tags=[];
+            const region=document.getElementById('regionInput').value;
+            const pref=document.getElementById('prefSelect').value;
+            if(pref) tags.push(pref); else if(region) tags.push(region);
+            document.querySelectorAll('input[name="facility"]:checked').forEach(c=>tags.push(c.value));
+            document.querySelectorAll('input[name="employment"]:checked').forEach(c=>tags.push(c.value));
+            const sal=parseInt(document.getElementById('salaryInput').value);
+            if(sal>0) tags.push(sal+'万円以上');
+            document.querySelectorAll('input[name="feature"]:checked').forEach(c=>tags.push(c.value));
+
+            const bar=document.getElementById('activeFiltersBar');
+            const container=document.getElementById('activeFilterTags');
+            if(tags.length>0){
+                bar.classList.remove('hidden');
+                container.innerHTML=tags.map(t=>`<span class="flex-shrink-0 text-xs bg-primary-light text-primary px-2 py-1 rounded-full font-medium">${escapeHtml(t)}</span>`).join('');
+            }else{ bar.classList.add('hidden'); }
+        }
+
+        // ========== Filters Setup ==========
+        function setupFilters(){
+            const reg=document.getElementById('regionInput'),pref=document.getElementById('prefSelect');
+            reg.addEventListener('change',()=>{
+                const r=reg.value;
+                pref.innerHTML='<option value="">すべての都道府県</option>';
+                if(r&&REGION_PREF[r]){
+                    REGION_PREF[r].forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;pref.appendChild(o);});
+                    pref.disabled=false;
+                }else{pref.disabled=true;}
+                updateFilterCounts();updateActiveFilters();
+            });
+            pref.addEventListener('change',()=>{updateFilterCounts();updateActiveFilters();});
+            document.getElementById('salaryInput').addEventListener('change',()=>{updateFilterCounts();updateActiveFilters();});
+            document.getElementById('clearFiltersBtn').addEventListener('click',clearAllFilters);
+        }
+
+        function clearAllFilters(){
+            document.getElementById('regionInput').value='';
+            document.getElementById('prefSelect').innerHTML='<option value="">先にエリアを選択</option>';
+            document.getElementById('prefSelect').disabled=true;
+            document.getElementById('salaryInput').value='0';
+            document.querySelectorAll('.chip input[type="checkbox"]').forEach(c=>{c.checked=false;c.closest('.chip').classList.remove('chip-active');});
+            updateFilterCounts();updateActiveFilters();
+            currentPage=1;filterAndRender();
+        }
+
+        function setupInteractions(){
+            document.getElementById('searchBtn').addEventListener('click',()=>{currentPage=1;filterAndRender();});
+            document.getElementById('sortSelect').addEventListener('change',()=>{currentPage=1;filterAndRender();});
+            document.getElementById('keywordInput').addEventListener('keydown',e=>{if(e.key==='Enter'){currentPage=1;filterAndRender();}});
+        }
+
+        // ========== Cart ==========
         function setupCart(){
             const saved=localStorage.getItem('nijikango_cart');
             if(saved){try{JSON.parse(saved).forEach(id=>cart.add(String(id)));updateCartUI();}catch(e){}}
@@ -224,22 +420,22 @@
         }
         function saveCart(){localStorage.setItem('nijikango_cart',JSON.stringify(Array.from(cart)));}
         function updateCartUI(){
-            const c=cart.size;document.getElementById('cartCount').innerText=c;const bar=document.getElementById('cartBar');
+            const c=cart.size;document.getElementById('cartCount').textContent=c;const bar=document.getElementById('cartBar');
             if(c>0){bar.style.transform='translateX(-50%) translateY(0)';bar.classList.add('cart-bar-enter');}
             else{bar.style.transform='translateX(-50%) translateY(100px)';bar.classList.remove('cart-bar-enter');}
         }
 
-        // Modal
+        // ========== Modals ==========
         function showApplyModal(){
             const c=cart.size;if(!c)return;
             const o=document.createElement('div');o.id='applyModal';o.className='fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]';
-            o.innerHTML=`<div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-md shadow-2xl"><div class="text-gray-800 text-lg leading-relaxed mb-6">${c}件の求人にまとめて応募しますか？</div><div class="flex justify-center gap-4"><button onclick="this.closest('#applyModal').remove()" class="px-6 py-3 rounded-full font-bold bg-gray-100 text-gray-600 min-w-[120px]">キャンセル</button><button onclick="this.closest('#applyModal').remove();executeApplyBatch();" class="px-6 py-3 rounded-full font-bold bg-primary text-white min-w-[120px]">応募する</button></div></div>`;
+            o.innerHTML=`<div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-md shadow-2xl"><div class="text-gray-800 text-lg leading-relaxed mb-6">${c}件の求人にまとめて応募しますか？</div><div class="flex justify-center gap-4"><button onclick="this.closest('#applyModal').remove()" class="px-6 py-3 rounded-full font-bold bg-gray-100 text-gray-600 min-w-[100px]">キャンセル</button><button onclick="this.closest('#applyModal').remove();executeApplyBatch();" class="px-6 py-3 rounded-full font-bold bg-primary text-white min-w-[100px]">応募する</button></div></div>`;
             document.body.appendChild(o);
         }
         function showResultModal(t){
             const e=document.getElementById('resultModal');if(e)e.remove();
             const o=document.createElement('div');o.id='resultModal';o.className='fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]';
-            o.innerHTML=`<div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-md shadow-2xl"><div class="text-gray-800 text-lg leading-relaxed mb-6 whitespace-pre-wrap">${t}</div><button onclick="this.closest('#resultModal').remove()" class="px-6 py-3 rounded-full font-bold bg-primary text-white min-w-[120px]">閉じる</button></div>`;
+            o.innerHTML=`<div class="bg-white p-8 rounded-2xl text-center w-[90%] max-w-md shadow-2xl"><div class="text-gray-800 text-lg leading-relaxed mb-6 whitespace-pre-wrap">${t}</div><button onclick="this.closest('#resultModal').remove()" class="px-6 py-3 rounded-full font-bold bg-primary text-white min-w-[100px]">閉じる</button></div>`;
             document.body.appendChild(o);
         }
         async function executeApplyBatch(){
@@ -250,21 +446,7 @@
         }
         async function applyBatch(){if(!cart.size)return;showApplyModal();}
 
-        // Filters
-        function setupFilters(){
-            const reg=document.getElementById('regionInput'),pref=document.getElementById('prefSelect');
-            reg.addEventListener('change',()=>{const r=reg.value;pref.innerHTML='<option value="">すべての都道府県</option>';if(r&&REGION_PREF[r]){REGION_PREF[r].forEach(p=>{const o=document.createElement('option');o.value=p;o.innerText=p;pref.appendChild(o);});pref.disabled=false;}else{pref.disabled=true;}});
-        }
-        function setupInteractions(){
-            document.getElementById('searchBtn').addEventListener('click',()=>{currentPage=1;filterAndRender();});
-            document.getElementById('sortSelect').addEventListener('change',()=>{currentPage=1;filterAndRender();});
-            document.getElementById('keywordInput').addEventListener('keydown',e=>{if(e.key==='Enter'){currentPage=1;filterAndRender();}});
-            const toggle=document.getElementById('filterToggleBtn'),detail=document.getElementById('detailFilters'),text=document.getElementById('filterToggleText');
-            toggle.addEventListener('click',()=>{const h=detail.classList.contains('hidden');if(h){detail.classList.remove('hidden');detail.classList.add('animate-fade-in-up');text.textContent='閉じる';}else{detail.classList.add('hidden');detail.classList.remove('animate-fade-in-up');text.textContent='詳細フィルター';}});
-        }
-        function setupFeatureChips(){document.querySelectorAll('#featureChips label').forEach(l=>{l.addEventListener('click',()=>{const c=l.querySelector('input[type="checkbox"]');setTimeout(()=>{c.checked?l.classList.add('chip-active'):l.classList.remove('chip-active');},0);});});}
-
-        // D1→日本語キー変換
+        // ========== D1→日本語キー変換 ==========
         function mapD1ToDisplay(j){return{
             '求人番号':j.job_number||'','求人ID':j.job_id||'','求人タイトル':j.title||'','施設名':'非公開',
             '年収':j.salary||'','月給':j.monthly_salary||'','時給':j.hourly_salary||'','給与備考':j.salary_note||'',
@@ -278,10 +460,9 @@
             '職種大枠':j.category||'','職種詳細':j.detail||'','更新日':j.updated_at||''
         };}
 
-        // Fetch Jobs (Worker API優先 → zip fallback)
+        // ========== Fetch Jobs ==========
         async function fetchJobs(){
             try{
-                // Strategy 1: Worker API (fast D1)
                 try{
                     const res=await fetch(`${WORKER_API_URL}/api/jobs?limit=5000&t=${Date.now()}`);
                     if(res.ok){
@@ -293,20 +474,18 @@
                             renderTopics(data);filterAndRender();return;
                         }
                     }
-                }catch(e){console.warn('Worker API unavailable, falling back to zip:',e.message);}
-
-                // Strategy 2: jobs.zip fallback
+                }catch(e){console.warn('Worker API unavailable:',e.message);}
                 const res=await fetch(`${DATA_URL}?t=${Date.now()}`);if(!res.ok)throw new Error('Not found');
                 const blob=await res.blob();const zip=await JSZip.loadAsync(blob);
                 const fn=Object.keys(zip.files).find(n=>n.endsWith('.json'));if(!fn)throw new Error('No JSON');
                 const txt=await zip.files[fn].async('string');const data=JSON.parse(txt);
                 if(Array.isArray(data)&&data.length>0){allJobs=data;try{localStorage.setItem('jobs_cache',JSON.stringify({timestamp:Date.now(),data}));}catch(e){}renderTopics(data);filterAndRender();}
-                else{document.getElementById('jobsContainer').innerHTML='<div class="text-center py-10 text-gray-500 bg-white rounded-xl">求人データがありません</div>';}
-            }catch(e){console.error(e);document.getElementById('jobsContainer').innerHTML='<div class="text-center py-10 text-red-500 bg-white rounded-xl">求人データの読み込みに失敗しました。</div>';}
+                else{document.getElementById('jobsContainer').innerHTML='<div class="text-center py-12 text-gray-400 bg-white rounded-xl">求人データがありません</div>';}
+            }catch(e){console.error(e);document.getElementById('jobsContainer').innerHTML='<div class="text-center py-12 text-red-400 bg-white rounded-xl">求人データの読み込みに失敗しました</div>';}
             finally{setTimeout(()=>{document.getElementById('loadingOverlay').style.display='none';},500);}
         }
 
-        // Topics
+        // ========== Topics ==========
         function renderTopics(jobs){
             let rec=jobs.filter(j=>{const f=String(j['おすすめ求人']||'').toLowerCase();return f==='true'||f==='1';});
             if(rec.length<3){const hi=jobs.filter(j=>parseInt(j['年収下限']||0)>=500&&!rec.includes(j));rec=[...rec,...hi];}
@@ -315,60 +494,145 @@
             document.getElementById('topicsSection').classList.remove('hidden');
             document.getElementById('topicsContainer').innerHTML=final.map(j=>{
                 const t=j['求人タイトル']||'注目の看護求人',s=j['年収']||'応相談',ft=j['施設形態']||'',id=j['求人番号']||j['求人ID'];
-                return `<a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="flex-shrink-0 w-64 bg-white rounded-xl p-4 shadow-sm border border-pink-100 hover:shadow-md transition-shadow no-underline">${ft?`<span class="text-xs bg-primary-light text-primary px-2 py-0.5 rounded font-medium">${ft}</span>`:''}<div class="text-sm font-bold text-gray-800 mt-2 leading-snug line-clamp-2">${truncate(t,30)}</div><div class="text-xs text-primary font-bold mt-2">💰 ${s}</div></a>`;
+                return `<a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="flex-shrink-0 w-60 bg-white rounded-xl p-3.5 shadow-sm border border-pink-100 hover:shadow-md transition-shadow no-underline">${ft?`<span class="text-xs bg-primary-light text-primary px-2 py-0.5 rounded font-medium">${escapeHtml(ft)}</span>`:''}<div class="text-sm font-bold text-gray-700 mt-2 leading-snug line-clamp-2">${escapeHtml(truncate(t,28))}</div><div class="text-xs text-primary font-bold mt-2">💰 ${escapeHtml(s)}</div></a>`;
             }).join('');
         }
 
-        // Filter & Render
+        // ========== Filter & Render ==========
+        function matchesLocation(loc, target) {
+            if (!target) return true;
+            // Try exact match first, then without suffix
+            if (loc.includes(target)) return true;
+            const short = target.replace(/[都府県]$/, '');
+            return loc.includes(short);
+        }
+
         function filterAndRender(){
             const kw=document.getElementById('keywordInput').value.trim().toLowerCase();
             const region=document.getElementById('regionInput').value;
             const pref=document.getElementById('prefSelect').value;
-            const cat=document.getElementById('categoryInput').value;
             const minSal=parseInt(document.getElementById('salaryInput').value,10);
-            const emp=document.getElementById('employmentInput').value;
             const sort=document.getElementById('sortSelect').value;
+            const facilities=Array.from(document.querySelectorAll('input[name="facility"]:checked')).map(c=>c.value);
+            const employments=Array.from(document.querySelectorAll('input[name="employment"]:checked')).map(c=>c.value);
             const feats=Array.from(document.querySelectorAll('input[name="feature"]:checked')).map(c=>c.value);
 
             let filtered=allJobs.filter(j=>{
                 const loc=(j['勤務地']||'')+(j['都道府県']||'')+(j['市区町村']||'');
-                const jCat=(j['施設形態']||j['職種大枠']||'');
+                const jFacility=(j['施設形態']||j['職種大枠']||'');
                 const jSal=parseInt(j['年収下限']||0);
                 const jFeat=(j['特徴タグ']||'')+(j['タグ（特徴）']||'');
                 const jEmp=(j['雇用形態']||'');
+
+                // Keyword
                 if(kw){const txt=[j['求人タイトル'],j['施設形態'],j['職種'],j['業務内容'],j['勤務地'],j['都道府県'],j['タグ（特徴）'],j['特徴タグ'],j['雇用形態']].join(' ').toLowerCase();if(!txt.includes(kw))return false;}
-                if(region){if(pref){if(!loc.includes(pref))return false;}else{const ps=REGION_PREF[region]||[];if(!ps.some(p=>loc.includes(p)))return false;}}
-                if(cat&&!jCat.includes(cat))return false;
+                // Area (improved matching)
+                if(region){
+                    if(pref){
+                        if(!matchesLocation(loc,pref))return false;
+                    }else{
+                        const ps=REGION_PREF[region]||[];
+                        const psShort=REGION_PREF_SHORT[region]||[];
+                        if(!ps.some(p=>loc.includes(p))&&!psShort.some(p=>loc.includes(p)))return false;
+                    }
+                }
+                // Facility type (multiple selection)
+                if(facilities.length>0&&!facilities.some(f=>jFacility.includes(f)))return false;
+                // Employment type (multiple selection)
+                if(employments.length>0&&!employments.some(e=>jEmp.includes(e)))return false;
+                // Salary
                 if(minSal>0&&jSal<minSal)return false;
-                if(emp&&!jEmp.includes(emp))return false;
+                // Features
                 if(feats.length>0&&!feats.every(f=>jFeat.includes(f)))return false;
                 return true;
             });
+
             if(sort==='salary_desc')filtered.sort((a,b)=>parseInt(b['年収下限']||0)-parseInt(a['年収下限']||0));
             else if(sort==='salary_asc')filtered.sort((a,b)=>parseInt(a['年収下限']||0)-parseInt(b['年収下限']||0));
             currentFilteredJobs=filtered;
-            document.getElementById('resultCount').textContent=`${filtered.length}件の求人`;
+            document.getElementById('resultCount').innerHTML=`<span class="text-primary text-lg font-bold">${filtered.length}</span><span class="text-gray-500 text-sm ml-1">件の求人</span>`;
             renderPage();
         }
 
+        // ========== Render Page ==========
         function renderPage(){
             const con=document.getElementById('jobsContainer');
             const tp=Math.ceil(currentFilteredJobs.length/ITEMS_PER_PAGE);
             const start=(currentPage-1)*ITEMS_PER_PAGE;
             const page=currentFilteredJobs.slice(start,start+ITEMS_PER_PAGE);
-            if(!page.length){con.innerHTML='<div class="text-center py-10 text-gray-500 bg-white rounded-xl">条件に合う求人が見つかりませんでした。</div>';return;}
+
+            if(!page.length){
+                con.innerHTML='<div class="text-center py-16 bg-white rounded-xl border border-gray-100"><p class="text-gray-400 text-sm">条件に合う求人が見つかりませんでした</p><button onclick="clearAllFilters()" class="mt-3 text-primary text-sm font-medium hover:underline">条件をクリアする</button></div>';
+                return;
+            }
+
             con.innerHTML=page.map((j,i)=>{
-                const id=j['求人番号']||j['求人ID'],title=j['求人タイトル']||'求人',fac='非公開';
-                const salary=j['年収']||'応相談',loc=truncate((j['都道府県']||'')+(j['市区町村']||'')+' '+(j['最寄駅（路線）']||''),25);
-                const ft=j['施設形態']||'',emp=j['雇用形態']||'';
-                const feats=(j['特徴タグ']||j['タグ（特徴）']||'').split(',').filter(Boolean).slice(0,3);
-                if(ft)feats.unshift(ft);
-                const desc=truncate(j['業務内容']||j['担当業務']||'',60);
+                const id=j['求人番号']||j['求人ID'];
+                const title=j['求人タイトル']||'求人';
+                const salary=j['年収']||'応相談';
+                const monthlySalary=j['月給']||'';
+                const locParts=[(j['都道府県']||''),(j['市区町村']||'')].filter(Boolean);
+                const loc=locParts.join(' ')||'';
+                const station=j['最寄駅（路線）']||'';
+                const ft=j['施設形態']||'';
+                const emp=j['雇用形態']||'';
+                const workStyle=j['勤務形態']||'';
+                const featsRaw=(j['特徴タグ']||j['タグ（特徴）']||'').split(',').filter(Boolean).slice(0,4);
+                const desc=truncate(j['業務内容']||j['担当業務']||'',80);
                 const inCart=cart.has(String(id));
-                const tags=feats.map(t=>t===ft?`<span class="text-xs px-2 py-0.5 rounded bg-primary-light text-primary">${t}</span>`:`<span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">${t}</span>`).join('');
-                return `<div class="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow animate-fade-in-up" style="animation-delay:${i*30}ms"><a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="block p-4 no-underline text-inherit"><div class="flex items-center justify-between mb-2"><span class="text-xs text-gray-400">No.${id}</span>${emp?`<span class="text-xs text-gray-500 border border-gray-200 rounded px-1.5 py-0.5">${emp}</span>`:''}</div><div class="text-sm font-bold text-gray-700 mb-1">${fac}</div><h3 class="text-base font-bold text-primary leading-snug mb-3">${title}</h3><div class="flex flex-wrap gap-1.5 mb-3">${tags}</div>${desc?`<p class="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">${desc}</p>`:''}<div class="flex items-center gap-4 text-sm text-gray-600"><span class="flex items-center gap-1">📍 ${loc||'---'}</span><span class="flex items-center gap-1 font-bold text-primary">💰 ${salary}</span></div></a><div class="px-4 pb-3 flex items-center justify-between border-t border-gray-50 pt-2"><button class="fav-btn ${inCart?'text-red-500':'text-gray-300'} hover:scale-110 transition-transform p-1" onclick="event.stopPropagation();toggleCart('${id}',this)"><svg class="w-6 h-6 heart-icon" fill="${inCart?'currentColor':'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></button><a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="text-xs text-primary font-medium hover:underline">詳細を見る →</a></div></div>`;
+
+                // Build tags
+                const badges=[];
+                if(ft) badges.push(`<span class="text-xs px-2 py-0.5 rounded bg-primary-light text-primary font-medium">${escapeHtml(ft)}</span>`);
+                if(emp) badges.push(`<span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-600 font-medium">${escapeHtml(emp)}</span>`);
+                if(workStyle) badges.push(`<span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">${escapeHtml(workStyle)}</span>`);
+                const featureTags=featsRaw.map(t=>`<span class="text-xs px-2 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100">${escapeHtml(t)}</span>`).join('');
+
+                return `<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in-up" style="animation-delay:${i*25}ms">
+                    <a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="block p-4 no-underline text-inherit">
+                        <!-- Badges -->
+                        <div class="flex flex-wrap gap-1.5 mb-2.5">${badges.join('')}</div>
+                        <!-- Title -->
+                        <h3 class="text-[15px] font-bold text-gray-800 leading-snug mb-3">${escapeHtml(title)}</h3>
+                        <!-- Salary -->
+                        <div class="bg-primary-light rounded-lg px-3 py-2 mb-3 flex items-center gap-2">
+                            <span class="text-sm">💰</span>
+                            <div>
+                                <span class="text-primary font-bold text-sm">${escapeHtml(salary)}</span>
+                                ${monthlySalary?`<span class="text-xs text-gray-500 ml-1.5">（${escapeHtml(truncate(monthlySalary,20))}）</span>`:''}
+                            </div>
+                        </div>
+                        <!-- Location -->
+                        <div class="space-y-1.5 mb-3">
+                            ${loc?`<div class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>${escapeHtml(loc)}</span></div>`:''}
+                            ${station?`<div class="flex items-start gap-2 text-sm text-gray-500"><svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>${escapeHtml(truncate(station,30))}</span></div>`:''}
+                        </div>
+                        <!-- Description -->
+                        ${desc?`<p class="text-xs text-gray-500 mb-3 leading-relaxed line-clamp-2">${escapeHtml(desc)}</p>`:''}
+                        <!-- Feature tags -->
+                        ${featureTags?`<div class="flex flex-wrap gap-1 mb-1">${featureTags}</div>`:''}
+                    </a>
+                    <!-- Card Footer -->
+                    <div class="px-4 py-2.5 flex items-center justify-between border-t border-gray-50 bg-gray-50/50">
+                        <button class="fav-btn ${inCart?'text-red-500':'text-gray-300'} hover:scale-110 transition-transform p-1" onclick="event.stopPropagation();toggleCart('${id}',this)">
+                            <svg class="w-6 h-6 heart-icon" fill="${inCart?'currentColor':'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </button>
+                        <a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+                            詳細を見る
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>`;
             }).join('');
-            if(tp>1){con.innerHTML+=`<div class="flex justify-center items-center gap-4 mt-6"><button onclick="changePage(-1)" ${currentPage<=1?'disabled':''} class="px-5 py-2.5 rounded-full font-bold text-sm ${currentPage<=1?'bg-gray-100 text-gray-400':'bg-white text-gray-700 shadow-sm hover:shadow-md'} transition-shadow">← 前へ</button><span class="text-sm text-gray-500 font-bold">${currentPage} / ${tp}</span><button onclick="changePage(1)" ${currentPage>=tp?'disabled':''} class="px-5 py-2.5 rounded-full font-bold text-sm ${currentPage>=tp?'bg-gray-100 text-gray-400':'bg-white text-gray-700 shadow-sm hover:shadow-md'} transition-shadow">次へ →</button></div>`;}
+
+            // Pagination
+            if(tp>1){
+                con.innerHTML+=`<div class="flex justify-center items-center gap-3 mt-6 mb-4">
+                    <button onclick="changePage(-1)" ${currentPage<=1?'disabled':''} class="px-5 py-2.5 rounded-lg font-bold text-sm ${currentPage<=1?'bg-gray-100 text-gray-400 cursor-not-allowed':'bg-white text-gray-700 shadow-sm hover:shadow-md border border-gray-200'} transition-all">← 前へ</button>
+                    <span class="text-sm text-gray-500 font-bold">${currentPage} / ${tp}</span>
+                    <button onclick="changePage(1)" ${currentPage>=tp?'disabled':''} class="px-5 py-2.5 rounded-lg font-bold text-sm ${currentPage>=tp?'bg-gray-100 text-gray-400 cursor-not-allowed':'bg-white text-gray-700 shadow-sm hover:shadow-md border border-gray-200'} transition-all">次へ →</button>
+                </div>`;
+            }
         }
         function changePage(d){const tp=Math.ceil(currentFilteredJobs.length/ITEMS_PER_PAGE);currentPage=Math.max(1,Math.min(tp,currentPage+d));renderPage();window.scrollTo({top:0,behavior:'smooth'});}
     </script>
