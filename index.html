@@ -325,6 +325,7 @@
                         cb.checked?label.classList.add('chip-active'):label.classList.remove('chip-active');
                         updateFilterCounts();
                         updateActiveFilters();
+                        currentPage=1;filterAndRender();
                     },0);
                 });
             });
@@ -383,10 +384,10 @@
                     REGION_PREF[r].forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;pref.appendChild(o);});
                     pref.disabled=false;
                 }else{pref.disabled=true;}
-                updateFilterCounts();updateActiveFilters();
+                updateFilterCounts();updateActiveFilters();currentPage=1;filterAndRender();
             });
-            pref.addEventListener('change',()=>{updateFilterCounts();updateActiveFilters();});
-            document.getElementById('salaryInput').addEventListener('change',()=>{updateFilterCounts();updateActiveFilters();});
+            pref.addEventListener('change',()=>{updateFilterCounts();updateActiveFilters();currentPage=1;filterAndRender();});
+            document.getElementById('salaryInput').addEventListener('change',()=>{updateFilterCounts();updateActiveFilters();currentPage=1;filterAndRender();});
             document.getElementById('clearFiltersBtn').addEventListener('click',clearAllFilters);
         }
 
@@ -499,12 +500,39 @@
         }
 
         // ========== Filter & Render ==========
-        function matchesLocation(loc, target) {
+        // 市区町村 → 都道府県 逆引きマップ（都道府県が空の場合のフォールバック用）
+        const CITY_TO_PREF = {};
+        Object.entries(REGION_PREF).forEach(([region, prefs]) => {
+            prefs.forEach(p => { CITY_TO_PREF[p] = p; CITY_TO_PREF[p.replace(/[都府県]$/, '')] = p; });
+        });
+
+        function matchesLocation(job, target) {
             if (!target) return true;
-            // Try exact match first, then without suffix
-            if (loc.includes(target)) return true;
+            const pref = job['都道府県'] || '';
+            const city = job['市区町村'] || '';
+            const loc = job['勤務地'] || '';
+            const all = pref + city + loc;
+            // 完全一致 or 部分一致
+            if (all.includes(target)) return true;
+            // 都府県サフィックスなしで再チェック
             const short = target.replace(/[都府県]$/, '');
-            return loc.includes(short);
+            return all.includes(short);
+        }
+
+        function matchesRegion(job, region) {
+            if (!region) return true;
+            const ps = REGION_PREF[region] || [];
+            const psShort = REGION_PREF_SHORT[region] || [];
+            const pref = job['都道府県'] || '';
+            const city = job['市区町村'] || '';
+            const loc = job['勤務地'] || '';
+
+            // 1. 都道府県フィールドで直接チェック（最も信頼性が高い）
+            if (pref && (ps.some(p => pref.includes(p)) || psShort.some(p => pref.includes(p)))) return true;
+            // 2. 市区町村 + 勤務地 で都道府県名を含むかチェック
+            const combined = city + loc;
+            if (ps.some(p => combined.includes(p)) || psShort.some(p => combined.includes(p))) return true;
+            return false;
         }
 
         function filterAndRender(){
@@ -518,22 +546,19 @@
             const feats=Array.from(document.querySelectorAll('input[name="feature"]:checked')).map(c=>c.value);
 
             let filtered=allJobs.filter(j=>{
-                const loc=(j['勤務地']||'')+(j['都道府県']||'')+(j['市区町村']||'');
                 const jFacility=(j['施設形態']||j['職種大枠']||'');
                 const jSal=parseInt(j['年収下限']||0);
                 const jFeat=(j['特徴タグ']||'')+(j['タグ（特徴）']||'');
                 const jEmp=(j['雇用形態']||'');
 
                 // Keyword
-                if(kw){const txt=[j['求人タイトル'],j['施設形態'],j['職種'],j['業務内容'],j['勤務地'],j['都道府県'],j['タグ（特徴）'],j['特徴タグ'],j['雇用形態']].join(' ').toLowerCase();if(!txt.includes(kw))return false;}
-                // Area (improved matching)
+                if(kw){const txt=[j['求人タイトル'],j['施設形態'],j['職種'],j['業務内容'],j['勤務地'],j['都道府県'],j['市区町村'],j['タグ（特徴）'],j['特徴タグ'],j['雇用形態']].join(' ').toLowerCase();if(!txt.includes(kw))return false;}
+                // Area (improved: separate prefecture/region matching)
                 if(region){
                     if(pref){
-                        if(!matchesLocation(loc,pref))return false;
+                        if(!matchesLocation(j,pref))return false;
                     }else{
-                        const ps=REGION_PREF[region]||[];
-                        const psShort=REGION_PREF_SHORT[region]||[];
-                        if(!ps.some(p=>loc.includes(p))&&!psShort.some(p=>loc.includes(p)))return false;
+                        if(!matchesRegion(j,region))return false;
                     }
                 }
                 // Facility type (multiple selection)
