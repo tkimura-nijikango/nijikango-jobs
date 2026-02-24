@@ -35,6 +35,7 @@
         .cart-bar-enter { animation: slide-up 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
         @keyframes heart-pop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
         .heart-pop { animation: heart-pop 0.3s ease; }
+        @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
         .hide-scrollbar::-webkit-scrollbar { display:none; }
         .hide-scrollbar { -ms-overflow-style:none; scrollbar-width:none; }
         .filter-section { max-height:0; overflow:hidden; transition:max-height 0.3s ease; }
@@ -259,7 +260,7 @@
 
     <!-- Favorites Floating Bar -->
     <div id="cartBar" class="fixed bottom-5 left-1/2 w-[92%] max-w-md bg-primary text-white px-5 py-3.5 rounded-2xl shadow-lg flex justify-between items-center z-[2000]" style="transform:translateX(-50%) translateY(100px);">
-        <div class="font-bold text-sm flex items-center gap-2">
+        <div class="font-bold text-sm flex items-center gap-2 cursor-pointer" onclick="showFavoritesModal()">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <span>気になる求人</span>
             <span id="cartCount" class="bg-white text-primary px-2 py-0.5 rounded-full text-xs font-bold">0</span>
@@ -415,8 +416,8 @@
         }
         function toggleCart(id,btn){
             id=String(id);const icon=btn.querySelector('.heart-icon');
-            if(cart.has(id)){cart.delete(id);btn.classList.remove('text-red-500');btn.classList.add('text-gray-300');if(icon)icon.setAttribute('fill','none');}
-            else{cart.add(id);btn.classList.add('text-red-500');btn.classList.remove('text-gray-300');if(icon)icon.setAttribute('fill','currentColor');btn.classList.add('heart-pop');setTimeout(()=>btn.classList.remove('heart-pop'),300);}
+            if(cart.has(id)){cart.delete(id);btn.classList.remove('text-red-500','bg-red-50');btn.classList.add('text-gray-400','bg-pink-50');if(icon)icon.setAttribute('fill','none');}
+            else{cart.add(id);btn.classList.add('text-red-500','bg-red-50');btn.classList.remove('text-gray-400','bg-pink-50');if(icon)icon.setAttribute('fill','currentColor');btn.classList.add('heart-pop');setTimeout(()=>btn.classList.remove('heart-pop'),300);}
             saveCart();updateCartUI();
         }
         function saveCart(){localStorage.setItem('nijikango_cart',JSON.stringify(Array.from(cart)));}
@@ -427,6 +428,61 @@
         }
 
         // ========== Modals ==========
+        function showFavoritesModal(){
+            const c=cart.size;
+            const existing=document.getElementById('favoritesModal');if(existing)existing.remove();
+            const o=document.createElement('div');o.id='favoritesModal';o.className='fixed inset-0 bg-black/50 z-[10000] flex flex-col';
+            o.onclick=function(e){if(e.target===o)o.remove();};
+            let cardsHtml='';
+            if(c===0){
+                cardsHtml='<div class="text-center text-gray-400 py-12">お気に入りはまだありません</div>';
+            } else {
+                cart.forEach(id=>{
+                    const job=allJobs.find(j=>String(j['求人番号']||j['求人ID']||j['id'])==id);
+                    if(!job)return;
+                    const title=job['求人タイトル']||job['title']||'求人情報';
+                    const salary=job['年収']||job['salary']||'';
+                    const location=job['勤務地']||job['location']||'';
+                    const facility=job['施設形態']||job['facility_type']||'';
+                    cardsHtml+=`<div id="fav-card-${id}" class="bg-white rounded-xl p-4 flex items-start gap-3 shadow-sm border border-gray-100">
+                        <a href="detail.html?id=${id}&uid=${window.LINE_UID||''}" class="flex-1 min-w-0">
+                            <div class="font-bold text-sm text-gray-800 truncate">${title}</div>
+                            ${facility?`<div class="text-xs text-gray-500 mt-1">${facility}</div>`:''}
+                            ${salary?`<div class="text-xs text-primary font-bold mt-1">${salary}</div>`:''}
+                            ${location?`<div class="text-xs text-gray-400 mt-1">${location}</div>`:''}
+                        </a>
+                        <button onclick="event.stopPropagation();removeFromFavorites('${id}')" class="flex-shrink-0 text-gray-300 hover:text-red-400 transition-colors p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>`;
+                });
+            }
+            o.innerHTML=`<div class="bg-white w-full max-w-md mx-auto mt-auto rounded-t-2xl max-h-[80vh] flex flex-col shadow-2xl" style="animation:slideUp 0.3s ease">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                    <h2 class="font-bold text-lg text-gray-800">お気に入り求人（<span id="favModalCount">${c}</span>件）</h2>
+                    <button onclick="document.getElementById('favoritesModal').remove()" class="text-gray-400 hover:text-gray-600 p-1"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+                <div id="favCardsList" class="overflow-y-auto flex-1 p-4 space-y-3">${cardsHtml}</div>
+            </div>`;
+            document.body.appendChild(o);
+        }
+        function removeFromFavorites(id){
+            id=String(id);cart.delete(id);saveCart();updateCartUI();
+            const card=document.getElementById('fav-card-'+id);if(card)card.remove();
+            const countEl=document.getElementById('favModalCount');if(countEl)countEl.textContent=cart.size;
+            if(cart.size===0){
+                const list=document.getElementById('favCardsList');
+                if(list)list.innerHTML='<div class="text-center text-gray-400 py-12">お気に入りはまだありません</div>';
+            }
+            // 一覧のハートボタンも更新
+            document.querySelectorAll('.fav-btn').forEach(btn=>{
+                const onclick=btn.getAttribute('onclick')||'';
+                if(onclick.includes("'"+id+"'")){
+                    btn.classList.remove('text-red-500','bg-red-50');btn.classList.add('text-gray-400','bg-pink-50');
+                    const icon=btn.querySelector('.heart-icon');if(icon)icon.setAttribute('fill','none');
+                }
+            });
+        }
         function showApplyModal(){
             const c=cart.size;if(!c)return;
             const o=document.createElement('div');o.id='applyModal';o.className='fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]';
@@ -639,8 +695,8 @@
                     </a>
                     <!-- Card Footer -->
                     <div class="px-4 py-2.5 flex items-center justify-between border-t border-gray-50 bg-gray-50/50">
-                        <button class="fav-btn ${inCart?'text-red-500':'text-gray-300'} hover:scale-110 transition-transform p-1" onclick="event.stopPropagation();toggleCart('${id}',this)">
-                            <svg class="w-6 h-6 heart-icon" fill="${inCart?'currentColor':'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        <button class="fav-btn ${inCart?'text-red-500 bg-red-50':'text-gray-400 bg-pink-50'} hover:scale-110 transition-transform rounded-full p-1.5" onclick="event.stopPropagation();toggleCart('${id}',this)">
+                            <svg class="w-7 h-7 heart-icon" fill="${inCart?'currentColor':'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                         </button>
                         <a href="detail.html?id=${id}&uid=${window.LINE_UID}" class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
                             詳細を見る
